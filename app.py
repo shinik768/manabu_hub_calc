@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.ERROR)
 
 @app.route('/')
 def home():
-    return 'Hello, World!'
+    return "<p>Hello, World!</p>"
 
 line_bot_api = LineBotApi(
     'd580vu4FvFiDqyU6Qxi3xhbx8d24lOFcGDKREcASB3QQdIjhq2 \
