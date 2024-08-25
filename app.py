@@ -5,10 +5,14 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 import openai
 import os
+import logging
 
 app = Flask(__name__)
 
 port = int(os.environ.get("PORT", 5000))
+
+# ロギングの設定
+logging.basicConfig(level=logging.ERROR)
 
 @app.route('/')
 def home():
@@ -59,6 +63,8 @@ def handle_message(event):
 
 @app.errorhandler(Exception)
 def handle_exception(e):
+    # エラーメッセージをログに記録
+    logging.error(f"An error occurred: {str(e)}")
     return str(e), 500
 
 if __name__ == "__main__":
