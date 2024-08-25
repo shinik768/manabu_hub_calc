@@ -19,10 +19,7 @@ def home():
     return "<p>Hello, World!</p>"
 
 line_bot_api = LineBotApi(
-    'd580vu4FvFiDqyU6Qxi3xhbx8d24lOFcGDKREcASB3QQdIjhq2 \
-    +wq22Dcml1RMHf0xGd8fj3LGbkQvteTwr3EV+x4kuba/boP+YTF \
-    rS3KQt5hIzSY96Tqu0khsEbCKgelGZDv/KRlDmjeEVHEoqYHQdB \
-    04t89/1O/w1cDnyilFU='
+    'd580vu4FvFiDqyU6Qxi3xhbx8d24lOFcGDKREcASB3QQdIjhq2+wq22Dcml1RMHf0xGd8fj3LGbkQvteTwr3EV+x4kuba/boP+YTFrS3KQt5hIzSY96Tqu0khsEbCKgelGZDv/KRlDmjeEVHEoqYHQdB04t89/1O/w1cDnyilFU='
 )
 handler = WebhookHandler('ede248563361ab924f8f81e7c425038b')
 
@@ -45,9 +42,7 @@ def handle_message(event):
     response = index.query(user_message)
 
     # ChatGPT APIを使って応答を生成
-    openai.api_key = 'sk-proj-hm82lsi0epYJW5UJ0E7G9iM9T \
-        c2-9zsLy64E6tv1foLV1ryeX1hiAxW5r_T3BlbkFJc2jB6x \
-        03cJ3GK5YzRcqe1u-c5W3ArJH3TRVNMFdt1h7QFdNE3C1CINxecA'
+    openai.api_key = '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'
     completion = openai.Completion.create(
         engine="text-davinci-003",
         prompt=f"Q: {user_message}\nA: {response}",
