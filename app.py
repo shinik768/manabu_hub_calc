@@ -4,8 +4,15 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 import openai
+import os
 
 app = Flask(__name__)
+
+port = int(os.environ.get("PORT", 5000))
+
+@app.route('/')
+def home():
+    return 'Hello, World!'
 
 line_bot_api = LineBotApi(
     'd580vu4FvFiDqyU6Qxi3xhbx8d24lOFcGDKREcASB3QQdIjhq2 \
@@ -51,5 +58,5 @@ def handle_message(event):
     )
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0', port=port)
 
