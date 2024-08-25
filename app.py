@@ -57,6 +57,10 @@ def handle_message(event):
         TextSendMessage(text=bot_reply)
     )
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    return str(e), 500
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=port)
 
