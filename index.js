@@ -22,8 +22,8 @@ const openai = new OpenAI({
 });
 
 // ミドルウェアの設定
-app.use(express.json());  // 追加: リクエストボディをJSONとして解析
 app.use(middleware(config));
+app.use(express.json()); // JSONボディを解析するためのミドルウェア
 
 // ホームエンドポイント
 app.get('/', (req, res) => {
@@ -31,7 +31,6 @@ app.get('/', (req, res) => {
     console.log('Channel Secret:', process.env.LINE_CHANNEL_SECRET);
     res.send('<p>Hello, World!</p>');
 });
-
 
 // コールバックエンドポイント
 app.post('/callback', (req, res) => {
@@ -44,7 +43,7 @@ app.post('/callback', (req, res) => {
         .catch((err) => {
             console.error(err);
             res.status(500).end();
-        });
+    });
 });
 
 // イベントハンドラ
