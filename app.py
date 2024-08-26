@@ -1,4 +1,4 @@
-from llama_index import GPTIndex  # または適切なモジュール名
+#from llama_index import GPTIndex  # または適切なモジュール名
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -7,15 +7,15 @@ import openai
 import os
 import logging
 
-from langchain import Document  # 修正
-
+#from langchain import Document  # 修正
+"""
 # PDFやテキストデータのインデックス化
 documents = [Document.from_file("data/purpose_of_questions_japanese.pdf")]
 index = GPTIndex.from_documents(documents)
 
 # インデックスを保存して再利用
 index.save_to_disk("index.json")
-
+"""
 app = Flask(__name__)
 
 port = int(os.environ.get("PORT", 5000))
@@ -47,14 +47,15 @@ def handle_message(event):
     user_message = event.message.text
 
     # インデックスを読み込んでクエリ処理
-    index = GPTIndex.load_from_disk("index.json")
-    response = index.query(user_message)
+    #index = GPTIndex.load_from_disk("index.json")
+    #response = index.query(user_message)
 
     # ChatGPT APIを使って応答を生成
     openai.api_key = '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'
     completion = openai.Completion.create(
         engine="text-davinci-003",
-        prompt=f"Q: {user_message}\nA: {response}",
+        prompt=f"Q: {user_message}",
+        #prompt=f"Q: {user_message}\nA: {response}",
         max_tokens=150
     )
     bot_reply = completion.choices[0].text.strip()
