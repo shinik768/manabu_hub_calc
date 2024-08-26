@@ -27,11 +27,17 @@ app.use(middleware(config));
 
 // ホームエンドポイント
 app.get('/', (req, res) => {
+    console.log('Access Token:', process.env.LINE_CHANNEL_ACCESS_TOKEN);
+    console.log('Channel Secret:', process.env.LINE_CHANNEL_SECRET);
     res.send('<p>Hello, World!</p>');
 });
 
+
 // コールバックエンドポイント
 app.post('/callback', (req, res) => {
+    console.log('Headers:', req.headers); // 追加
+    const signature = req.headers['x-line-signature'];
+    console.log('Signature:', signature);
     Promise
         .all(req.body.events.map(handleEvent))
         .then((result) => res.json(result))
