@@ -1,0 +1,14 @@
+{
+    "version": 2,
+    "routes": [
+        {
+            "src": "/callback",
+            "methods": ["POST"],
+            "dest": "/callback"
+        },
+        {
+            "src": "/",
+            "dest": "/"
+        }
+    ]
+}
