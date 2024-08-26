@@ -1,4 +1,4 @@
-from llama_index import GPTIndex
+from langchain_community.llms import GPTIndex  # 修正
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -7,8 +7,7 @@ import openai
 import os
 import logging
 
-from llama_index import GPTIndex
-from llama_index import Document
+from langchain import Document  # 修正
 
 # PDFやテキストデータのインデックス化
 documents = [Document.from_file("data/purpose_of_questions_japanese.pdf")]
@@ -74,4 +73,3 @@ def handle_exception(e):
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=port)
-
