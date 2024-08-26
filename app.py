@@ -20,11 +20,11 @@ from linebot.v3.webhooks import (
 
 
 app = Flask(__name__)
-
+"""
 handler = WebhookHandler('ede248563361ab924f8f81e7c425038b')
 configuration = Configuration(access_token='d580vu4FvFiDqyU6Qxi3xhbx8d24lOFcGDKREcASB3QQdIjhq2+wq22Dcml1RMHf0xGd8fj3LGbkQvteTwr3EV+x4kuba/boP+YTFrS3KQt5hIzSY96Tqu0khsEbCKgelGZDv/KRlDmjeEVHEoqYHQdB04t89/1O/w1cDnyilFU=')
-
-
+"""
+"""
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -64,7 +64,7 @@ def handle_message(event):
                 messages=[TextMessage(text=msg)]
             )
         )
-
+"""
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
