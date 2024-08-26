@@ -1,4 +1,3 @@
-from llama_index import GPTIndex  # または適切なモジュール名
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
