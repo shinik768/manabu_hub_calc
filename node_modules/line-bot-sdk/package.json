@@ -1,0 +1,38 @@
+{
+  "name": "line-bot-sdk",
+  "version": "0.1.4",
+  "description": "SDK of the LINE BOT API for Node.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/runnables/line-bot-sdk-nodejs.git"
+  },
+  "keywords": [
+    "LINE",
+    "Bot",
+    "API",
+    "Node.js"
+  ],
+  "author": "Runnables Company Limited",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/runnables/line-bot-sdk-nodejs/issues"
+  },
+  "homepage": "https://github.com/runnables/line-bot-sdk-nodejs#readme",
+  "dependencies": {
+    "debug": "~2.2.0",
+    "lodash.merge": "^4.3.5",
+    "superagent": "^1.8.3",
+    "superagent-promise": "^1.1.0"
+  },
+  "devDependencies": {
+    "chai": "~3.5.0",
+    "chai-as-promised": "^5.3.0",
+    "lodash": "^4.12.0",
+    "mocha": "~2.4.5",
+    "nock": "^8.0.0"
+  }
+}
