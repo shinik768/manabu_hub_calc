@@ -1,5 +1,5 @@
 #openai==0.27.0
 #llama_index==0.6.0
-Flask>=2.3.2
+Flask>=3.0.3
 line-bot-sdk==3.12.0
 #langchain_community
