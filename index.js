@@ -36,6 +36,7 @@ app.get('/', (req, res) => {
 app.post('/callback', (req, res) => {
     console.log('Headers:', req.headers); // 追加
     const signature = req.headers['x-line-signature'];
+    console.log('Received a callback:', req.body); // 受け取ったリクエストをログに出力
     console.log('Signature:', signature);
     Promise
         .all(req.body.events.map(handleEvent))
