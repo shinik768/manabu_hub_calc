@@ -97,6 +97,10 @@ app.post("/webhook", (req, res) => {
   );
 });
 
+app.get("/", (req, res) => {
+    res.send("LINE Bot is running.");
+  });  
+
 function handleEvent(event) {
   if (event.type !== "message" || event.message.type !== "text") {
     return Promise.resolve(null);
