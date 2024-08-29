@@ -93,33 +93,30 @@ def simplify_or_solve(expression):
 
         # 微分方程式のチェック
         # d(変数)/d(変数) または d^n(変数)/d(変数)^n の形を探す
-        derivative_pattern = r'd\^?\w+/d\^?\w+'
-        if re.search(derivative_pattern, expression):
-            # 微分方程式を解析する
-            matches = re.findall(derivative_pattern, expression)
-            for match in matches:
-                # 変数の抽出
-                parts = match.split('/')
-                var_from = parts[0][2:]  # dから始まる部分
-                var_to = parts[1][2:]     # dから始まる部分
+        derivative_match = re.match(r'^(d(\^(\d+))?([a-zA-Z])/?d([a-zA-Z])\s*=\s*(.*))$', expression)
+        if derivative_match:
+            n = derivative_match.group(3)  # 微分の階数
+            var_from = derivative_match.group(4)  # 微分対象の変数
+            var_to = derivative_match.group(5)  # 微分の変数
+            right_expr = derivative_match.group(6)  # 右辺の式
+            
+            if n is None:
+                n = 1
+            else:
+                n = int(n)
 
-                # 高階微分の処理
-                order_from = match.count('^')
-                order_to = parts[1].count('^')
+            # 微分方程式を生成
+            f_from = sp.Function(var_from)(sp.Symbol(var_to))
+            f_to = sp.sympify(right_expr.strip())
 
-                # 関数の定義
-                f_from = sp.Function(var_from)(sp.Symbol('x'))
-                f_to = sp.Function(var_to)(sp.Symbol('x'))
+            # dsolveを用いて解く
+            eq = sp.Eq(sp.Derivative(f_from, sp.Symbol(var_to), n), f_to)
+            solution = sp.dsolve(eq, f_from)
 
-                # 微分方程式を構築
-                if order_from == 0:
-                    eq = sp.Eq(sp.Derivative(f_from, sp.Symbol(var_from)), f_to)
-                else:
-                    eq = sp.Eq(sp.Derivative(f_from, sp.Symbol(var_from), order_from), f_to)
-
-                # 解を求める
-                solution = sp.dsolve(eq, f_from)
-                return str(solution)
+            if solution is not None:
+                return f"{solution}"
+            else:
+                return "解けない微分方程式です。"
             
         elif equal_sign_count == 1:
             # 左辺と右辺に分割
@@ -139,7 +136,7 @@ def simplify_or_solve(expression):
                     else:
                         solutions[var] = "解なし"  # 解がない場合の処理
                 # 解を指定された形式で整形
-                result = "\n".join([f"{var} = {sol}" for var, sol in solutions.items()])
+                result = "\n".join([f"{var} = {sol}" for var, sol in solutions.items()]).replace('[', '').replace(']', '')
                 return result
             else:
                 return "方程式には変数を含めてください！"
@@ -149,7 +146,7 @@ def simplify_or_solve(expression):
             # それ以外は式の簡略化
             simplified_expr = sp.simplify(sp.sympify(expression))
             simplified_expr_str = str(simplified_expr).replace('*', '')
-            return f"簡略化された式: {simplified_expr_str}"
+            return f"{simplified_expr_str}"
     except (sp.SympifyError, TypeError) as e:
         print(f"SymPy error: {e}")  # エラー内容を出力
         return "数式または方程式を正しく入力してください！"
