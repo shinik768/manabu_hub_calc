@@ -140,12 +140,12 @@ def simplify_or_solve(expression):
                 var1, var2 = sorted(variables, key=lambda v: str(v))  # アルファベット順でソート
                 image_path = plot_graph(left_expr, right_expr, str(var1), str(var2))  # グラフを描画
                 return image_path  # 画像パスを返す
-            elif len(variables) == 1:
+            else:
                 eq = sp.Eq(left_expr, right_expr)
-                solution = sp.solve(eq, variables[0])
-                return f"{variables[0]} = {solution[0]}" if solution else "解なし"
-
-            return "方程式には1つまたは2つの変数を含めてください！"
+                solutions = sp.solve(eq)
+                # 解を指定された形式で整形
+                result = "\n".join([f"{var} = {sol}" for var, sol in solutions.items()]).replace('[', '').replace(']', '')
+                return result if result else "解なし"  # 解がない場合の処理
 
         elif equal_sign_count > 1:
             return "方程式には等号 (=) をちょうど1個含めてください！"
