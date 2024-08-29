@@ -6,7 +6,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import uuid  # 追加
-import asyncio
+import threading
 from flask import Flask, request, abort
 from linebot.v3 import (
     WebhookHandler
@@ -149,39 +149,38 @@ def simplify_or_solve(expression):
         print(f"SymPy error: {e}")
         return "数式または方程式を正しく入力してください！"
 
-async def send_image_and_delete(event, image_path):
-    # 画像URLを生成
-    image_url = f"https://manabu-hub-ai.onrender.com/static/{os.path.basename(image_path)}"
-    
-    line_bot_api = MessagingApi(ApiClient(configuration))
-    response = await line_bot_api.reply_message_with_http_info(
-        ReplyMessageRequest(
-            reply_token=event.reply_token,
-            messages=[ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
-        )
-    )
-    print("画像送信応答:", response)
-
-    # 画像送信が成功した後に削除
-    os.remove(image_path)
-    print(f"画像ファイルが削除されました: {image_path}")
-
+def delete_image_after_delay(image_path, delay=86400):  # デフォルトは86400秒（24時間）
+    time.sleep(delay)
+    if os.path.exists(image_path):
+        os.remove(image_path)
+        print(f"画像ファイルが削除されました: {image_path}")
 
 @handler.add(MessageEvent, message=TextMessageContent)
-async def handle_message(event):
+def handle_message(event):
     user_message = event.message.text
     try:
         ai_response = simplify_or_solve(user_message)
         if ai_response.endswith('.png'):
             # 画像パスが返された場合は画像を送信
             image_path = ai_response  # 画像パスを保存
+            image_url = f"https://manabu-hub-ai.onrender.com/static/{os.path.basename(image_path)}"  # RenderのURLを指定
             
-            await send_image_and_delete(event, image_path)  # 画像送信関数をawaitで呼び出す
+            line_bot_api = MessagingApi(ApiClient(configuration))
+            response = line_bot_api.reply_message_with_http_info(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
+                )
+            )
+            print("画像送信応答:", response)
+
+            # 画像送信後に別スレッドで削除処理を開始
+            threading.Thread(target=delete_image_after_delay, args=(image_path,)).start()
         else:
             # テキスト応答の場合
             with ApiClient(configuration) as api_client:
                 line_bot_api = MessagingApi(api_client)
-                await line_bot_api.reply_message_with_http_info(
+                line_bot_api.reply_message_with_http_info(
                     ReplyMessageRequest(
                         reply_token=event.reply_token,
                         messages=[TextMessage(text=ai_response)]
@@ -192,7 +191,7 @@ async def handle_message(event):
         ai_response = "現在、システムが混み合っているため、しばらくお待ちください。"
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
-            await line_bot_api.reply_message_with_http_info(
+            line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
                     messages=[TextMessage(text=ai_response)]
