@@ -156,17 +156,21 @@ def handle_message(event):
         ai_response = simplify_or_solve(user_message)
         if ai_response.endswith('.png'):
             # 画像パスが返された場合は画像を送信
-            image_url = f"https://manabu-hub-ai.onrender.com/static/{os.path.basename(ai_response)}"  # RenderのURLを指定
+            image_path = ai_response  # 画像パスを保存
+            image_url = f"https://manabu-hub-ai.onrender.com/static/{os.path.basename(image_path)}"  # RenderのURLを指定
+            
             line_bot_api = MessagingApi(ApiClient(configuration))
-            line_bot_api.reply_message_with_http_info(
+            response = line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
                     messages=[ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
                 )
             )
-            # 画像を送信した後に削除
-            os.remove(ai_response)
-            print(f"画像ファイルが削除されました: {ai_response}")
+            print("画像送信応答:", response)
+            
+            # 画像送信が成功した後に削除
+            os.remove(image_path)
+            print(f"画像ファイルが削除されました: {image_path}")
         else:
             # テキスト応答の場合
             with ApiClient(configuration) as api_client:
