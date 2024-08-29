@@ -146,9 +146,13 @@ def simplify_or_solve(expression):
                     solutions = sp.solve(eq)
                 except Exception as e:
                     print(f"エラー: {e}")
-                # 解を指定された形式で整形
-                result = "\n".join([f"{var} = {sol}" for var, sol in solutions.items()]).replace('[', '').replace(']', '')
-                print(result)
+                    return "解を求める際にエラーが発生しました。"
+
+                if isinstance(solutions, list):
+                    result = "\n".join([f"{variables[0]} = {sol}" for sol in solutions]).replace('[', '').replace(']', '')
+                else:
+                    result = f"{variables[0]} = {solutions}"  # 解が1つだけの場合
+
                 return result if result else "解なし"  # 解がない場合の処理
 
         elif equal_sign_count > 1:
@@ -161,6 +165,7 @@ def simplify_or_solve(expression):
     except (sp.SympifyError, TypeError) as e:
         print(f"SymPy error: {e}")
         return "数式を正しく入力してください！"
+
 
 def delete_image_after_delay(image_path, delay=86400):  # デフォルトは86400秒（24時間）
     time.sleep(delay)
