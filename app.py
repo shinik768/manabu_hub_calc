@@ -1,4 +1,6 @@
 import os
+import openai
+
 from os.path import join, dirname
 
 from flask import Flask, request, abort
@@ -54,15 +56,33 @@ def callback():
 
     return 'OK'
 
+openai.api_key = "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"
 
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
+    user_message = event.message.text
+
+    try:
+        response = openai.Completion.create(
+            engine="text-davinci-003",  # 使用するモデル
+            prompt=user_message,
+            max_tokens=1024,  # 生成するトークンの最大数
+            n=1,
+            stop=None,
+            temperature=0.5,
+        )
+        ai_response = response.choices[0].text.strip()
+
+    except openai.error.APIError as e:
+        print(f"OpenAI API Error: {e}")
+        ai_response = "現在、システムが混み合っているため、しばらくお待ちください。"
+
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[TextMessage(text=event.message.text)]
+                messages=[TextMessage(text=ai_response)]
             )
         )
 
