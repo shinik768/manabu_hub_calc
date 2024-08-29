@@ -82,7 +82,10 @@ def plot_graph(left_expr, right_expr, var1, var2):
     X, Y = np.meshgrid(x_vals, y_vals)
 
     # 方程式を解いてZを計算
-    Z = sp.lambdify(var1, left_expr - right_expr, 'numpy')(X)
+    left_func = sp.lambdify(var1, left_expr - right_expr, 'numpy')
+    
+    # 変数を代入
+    Z = left_func(X, Y)
 
     plt.figure(figsize=(8, 6))
     plt.contour(X, Y, Z, levels=[0], colors='blue')  # 等高線を描画
