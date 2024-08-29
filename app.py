@@ -76,17 +76,40 @@ def add_multiplication_sign(expression):
     expression = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expression)
     return expression
 
+def add_exponentiation_sign(expression):
+    # `^` を `**` に変換
+    expression = expression.replace('^', '**')
+    return expression
+
+def process_derivatives(expression):
+    # 微分を表すための処理
+    # 文字の直後にある'を削除して、微分の階数を示す
+    derivative_count = {char: expression.count(char + "'") for char in set(expression) - set("0123456789+-*/()= ")}
+    for char, count in derivative_count.items():
+        if count > 0:
+            # 'を置換し、微分の階数に応じて微分を適用
+            for _ in range(count):
+                expression = expression.replace(char + "'", f"sp.diff({char})")
+    return expression, any(derivative_count.values())
+
 def simplify_or_solve(expression):
     try:
         # 入力された式のフォーマットを調整
         expression = add_spaces(expression)
         expression = add_multiplication_sign(expression)
+        expression = add_exponentiation_sign(expression)
+
+        # 微分の処理
+        expression, is_differential_equation = process_derivatives(expression)
 
         # `=` の数をカウント
         equal_sign_count = expression.count('=')
 
-        # 等号の数に応じた処理
-        if equal_sign_count == 1:
+        if is_differential_equation:
+            # 微分方程式の処理
+            solution = solve_differential_equation(expression)
+            return solution
+        elif equal_sign_count == 1:
             # 左辺と右辺に分割
             left_side, right_side = expression.split('=')
             left_expr = sp.sympify(left_side)
@@ -98,7 +121,11 @@ def simplify_or_solve(expression):
                 solutions = {}
                 for var in variables:
                     solution = sp.solve(left_expr - right_expr, var)
-                    solutions[var] = solution
+                    # 解が存在するか確認
+                    if solution:
+                        solutions[var] = solution[0] if len(solution) == 1 else solution
+                    else:
+                        solutions[var] = "解なし"  # 解がない場合の処理
                 # 解を指定された形式で整形
                 result = "\n".join([f"{var} = {sol}" for var, sol in solutions.items()])
                 return result
@@ -109,12 +136,22 @@ def simplify_or_solve(expression):
         else:
             # それ以外は式の簡略化
             simplified_expr = sp.simplify(sp.sympify(expression))
-            # '*' を省略した形式で出力
             simplified_expr_str = str(simplified_expr).replace('*', '')
             return f"簡略化された式: {simplified_expr_str}"
     except (sp.SympifyError, TypeError) as e:
         print(f"SymPy error: {e}")  # エラー内容を出力
-        return "数式を正しく入力してください！"
+        return "数式または方程式を正しく入力してください！"
+
+def solve_differential_equation(equation):
+    # 微分方程式を解く機能を追加
+    try:
+        # 微分方程式の処理
+        solution = sp.dsolve(sp.sympify(equation))
+        return f"微分方程式の解: {solution}" if solution else "解なし"
+    except Exception as e:
+        print(f"解けない微分方程式: {e}")  # 解けない場合はコメントを出力
+        return "エラー: 微分方程式の解決中にエラーが発生しました。"
+
     
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
