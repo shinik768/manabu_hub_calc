@@ -68,8 +68,9 @@ def send_request_with_retry(user_message):
 def handle_message(event):
     user_message = event.message.text
     try:
-        response = send_request_with_retry(user_message)
-        ai_response = response.choices[0].message.content.strip()       
+        #response = send_request_with_retry(user_message)
+        #ai_response = response.choices[0].message.content.strip()
+        ai_response = user_message       
     except Exception as e:
         print(f"Error: {e}")
         ai_response = "現在、システムが混み合っているため、しばらくお待ちください。"
@@ -84,5 +85,5 @@ def handle_message(event):
         )
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT"))
     app.run(host='0.0.0.0', port=port)
