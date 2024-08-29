@@ -5,6 +5,8 @@ import time
 import re
 import numpy as np
 import matplotlib.pyplot as plt
+import uuid  # 追加
+import asyncio
 from flask import Flask, request, abort
 from linebot.v3 import (
     WebhookHandler
@@ -24,7 +26,6 @@ from linebot.v3.webhooks import (
     MessageEvent,
     TextMessageContent
 )
-import uuid  # 追加
 
 app = Flask(__name__)
 
@@ -149,28 +150,32 @@ def simplify_or_solve(expression):
         print(f"SymPy error: {e}")
         return "数式または方程式を正しく入力してください！"
 
+async def send_image_and_delete(image_path, reply_token):
+    # 画像を送信
+    image_url = f"https://manabu-hub-ai.onrender.com/static/{os.path.basename(image_path)}"
+    
+    line_bot_api = MessagingApi(ApiClient(configuration))
+    await line_bot_api.reply_message_with_http_info(
+        ReplyMessageRequest(
+            reply_token=reply_token,
+            messages=[ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
+        )
+    )
+    
+    # 画像を削除
+    os.remove(image_path)
+    print(f"画像ファイルが削除されました: {image_path}")
+
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     user_message = event.message.text
     try:
         ai_response = simplify_or_solve(user_message)
         if ai_response.endswith('.png'):
-            # 画像パスが返された場合は画像を送信
-            image_path = ai_response  # 画像パスを保存
-            image_url = f"https://manabu-hub-ai.onrender.com/static/{os.path.basename(image_path)}"  # RenderのURLを指定
+            image_path = ai_response
             
-            line_bot_api = MessagingApi(ApiClient(configuration))
-            response = line_bot_api.reply_message_with_http_info(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
-                )
-            )
-            print("画像送信応答:", response)
-            
-            # 画像送信が成功した後に削除
-            os.remove(image_path)
-            print(f"画像ファイルが削除されました: {image_path}")
+            # 非同期で画像を送信して削除
+            asyncio.create_task(send_image_and_delete(image_path, event.reply_token))
         else:
             # テキスト応答の場合
             with ApiClient(configuration) as api_client:
