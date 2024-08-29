@@ -77,6 +77,7 @@ app.listen(port, () => {
 
 const express = require("express");
 const line = require("@line/bot-sdk");
+const ngrok = require("ngrok");
 require("dotenv").config();
 
 const config = {
@@ -98,8 +99,8 @@ app.post("/webhook", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-    res.send("LINE Bot is running.");
-  });  
+  res.send("LINE Bot is running.");
+});  
 
 function handleEvent(event) {
   if (event.type !== "message" || event.message.type !== "text") {
@@ -118,6 +119,11 @@ function handleEvent(event) {
 }
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+app.listen(port, async () => {
+  try {
+    const ngrokUrl = await ngrok.connect(port);
+    console.log(`Ngrok URL: ${ngrokUrl}/webhook`);
+  } catch (error) {
+    console.error("Error while connecting with ngrok:", error);
+  }
 });
