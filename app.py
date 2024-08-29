@@ -71,12 +71,20 @@ def add_spaces(expression):
 def add_multiplication_sign(expression):
     expression = re.sub(r'(?<=[\d])(?=[a-zA-Z])', '*', expression)  # 数字と変数の間
     expression = re.sub(r'(?<=[a-zA-Z])(?=[(])', '*', expression)  # 変数と括弧の間
+    expression = re.sub(r'(?<=[\d])(?=[(])', '*', expression)  # 数字と括弧の間
     return expression
 
 def add_exponentiation_sign(expression):
     expression = re.sub(r'(?<=[\d])\^', '**', expression)  # ^を**に変換
     expression = re.sub(r'(?<=[a-zA-Z])(?=\d)', '**', expression)  # 文字の後に数字が来る場合
     return expression
+
+def format_equation(left_expr, right_expr, var1, var2):
+    """数式を「（文字を含む式）＝（定数）」の形に整形します。"""
+    simplified_expr = sp.simplify(left_expr - right_expr)  # 左辺と右辺の差を簡略化
+    constant = simplified_expr.subs({var1: 0, var2: 0})  # 定数部分を計算
+    formatted_expr = str(simplified_expr).replace('*', '').replace('**', '^')  # 形式を整形
+    return f"{formatted_expr} = {constant}"
 
 def plot_graph(left_expr, right_expr, var1, var2):
     # 変数の範囲を設定
@@ -88,8 +96,10 @@ def plot_graph(left_expr, right_expr, var1, var2):
     Z = sp.lambdify((var1, var2), left_expr - right_expr, 'numpy')(X, Y)  # Z = 0 になる部分を計算
 
     plt.figure(figsize=(8, 6))
+    # タイトルを整形して設定
+    graph_title = format_equation(left_expr, right_expr, var1, var2)
     plt.contour(X, Y, Z, levels=[0], colors='blue')  # 等高線を描画
-    plt.title(f'Graph of {sp.pretty(left_expr)} = {sp.pretty(right_expr)}')
+    plt.title(graph_title)
     plt.xlabel(var1)
     plt.ylabel(var2)
     plt.grid()
@@ -129,12 +139,8 @@ def simplify_or_solve(expression):
             variables = list(left_expr.free_symbols.union(right_expr.free_symbols))
             if len(variables) == 2:
                 var1, var2 = sorted(variables, key=lambda v: str(v))  # アルファベット順でソート
-                simplified_expr = sp.simplify(left_expr - right_expr)
-
-                # 文字を含む式 = 定数の形に整理
-                constant = simplified_expr.subs({var1: 0, var2: 0})  # 定数部分を計算
-                formatted_expression = str(simplified_expr).replace('*', '')
-                return f"{formatted_expression} = {constant}"  # 整理した数式を返す
+                image_path = plot_graph(left_expr, right_expr, str(var1), str(var2))  # グラフを描画
+                return image_path  # 画像パスを返す
             elif len(variables) == 1:
                 eq = sp.Eq(left_expr, right_expr)
                 solution = sp.solve(eq, variables[0])
