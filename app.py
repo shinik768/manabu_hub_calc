@@ -3,9 +3,9 @@ import openai
 import sympy as sp
 import time
 import re
-
+import numpy as np
+import matplotlib.pyplot as plt
 from flask import Flask, request, abort
-
 from linebot.v3 import (
     WebhookHandler
 )
@@ -17,7 +17,8 @@ from linebot.v3.messaging import (
     ApiClient,
     MessagingApi,
     ReplyMessageRequest,
-    TextMessage
+    TextMessage,
+    ImageMessage
 )
 from linebot.v3.webhooks import (
     MessageEvent,
@@ -29,17 +30,12 @@ app = Flask(__name__)
 configuration = Configuration(access_token=os.environ.get('LINE_CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.environ.get('LINE_CHANNEL_SECRET'))
 
-
 @app.route("/callback", methods=['POST'])
 def callback():
-    # get X-Line-Signature header value
     signature = request.headers['X-Line-Signature']
-
-    # get request body as text
     body = request.get_data(as_text=True)
     app.logger.info("Request body: " + body)
 
-    # handle webhook body
     try:
         handler.handle(body, signature)
     except InvalidSignatureError:
@@ -71,110 +67,114 @@ def add_spaces(expression):
     return expression
 
 def add_multiplication_sign(expression):
-    # 省略された乗算の記号を追加
     expression = re.sub(r'(?<=[\d])(?=[a-zA-Z])', '*', expression)  # 数字と変数の間
     expression = re.sub(r'(?<=[a-zA-Z])(?=[(])', '*', expression)  # 変数と括弧の間
     return expression
 
 def add_exponentiation_sign(expression):
-    # 指数の記号を追加
     expression = re.sub(r'(?<=[\d])\^', '**', expression)  # ^を**に変換
     return expression
 
-def is_derivative_equation(expression):
-    # 微分方程式かどうかを判定
-    return ('d/' in expression or 'd^' in expression)
+def plot_graph(left_expr, right_expr, var1, var2):
+    # 変数の範囲を設定
+    x_vals = np.linspace(-10, 10, 400)  # xの範囲
+    y_vals = np.linspace(-10, 10, 400)  # yの範囲
+    X, Y = np.meshgrid(x_vals, y_vals)
+
+    # 方程式を解いてZを計算
+    Z = sp.lambdify(var1, left_expr - right_expr, 'numpy')(X)
+
+    plt.figure(figsize=(8, 6))
+    plt.contour(X, Y, Z, levels=[0], colors='blue')  # 等高線を描画
+    plt.title(f'Graph of {sp.pretty(left_expr)} = {sp.pretty(right_expr)}')
+    plt.xlabel(var1)
+    plt.ylabel(var2)
+    plt.grid()
+    plt.axhline(0, color='black', linewidth=0.5, ls='--')
+    plt.axvline(0, color='black', linewidth=0.5, ls='--')
+    plt.xlim(-10, 10)
+    plt.ylim(-10, 10)
+
+    # 画像を保存
+    image_path = 'graph.png'
+    plt.savefig(image_path)
+    plt.close()  # プロットを閉じる
+    return image_path
 
 def simplify_or_solve(expression):
     try:
-        # 入力された式のフォーマットを調整
         expression = add_spaces(expression)
         expression = add_multiplication_sign(expression)
         expression = add_exponentiation_sign(expression)
 
-        # `=` の数をカウント
         equal_sign_count = expression.count('=')
 
-        if is_derivative_equation(expression):
-            # 微分方程式の処理
-            # d^n(variable)/d(variable)^n または d(variable)/d(variable) の形式を検出
-            derivative_pattern = r'(d(\^(\d+))?([a-zA-Z])/?d([a-zA-Z])\s*=\s*(.*))'
-            parts = re.split(r'\s*=\s*', expression)
-
-            if len(parts) == 2:
-                left_side = parts[0].strip()
-                right_side = parts[1].strip()
-
-                # 左辺の微分形式を処理
-                derivative_match = re.match(derivative_pattern, left_side)
-                if derivative_match:
-                    n = derivative_match.group(3)
-                    var_from = derivative_match.group(4)
-                    var_to = derivative_match.group(5)
-
-                    if n is None:
-                        n = 1
-                    else:
-                        n = int(n)
-
-                    # 微分方程式を生成
-                    f_from = sp.Function(var_from)(sp.Symbol(var_to))
-                    f_to = sp.sympify(right_side.strip())
-
-                    # dsolveを用いて解く
-                    eq = sp.Eq(sp.Derivative(f_from, sp.Symbol(var_to), n), f_to)
-                    solution = sp.dsolve(eq, f_from)
-
-                    if solution is not None:
-                        return f"{solution}"
-                    else:
-                        return "解けない微分方程式です。"
-
-        elif equal_sign_count == 1:
-            # 左辺と右辺に分割し、(左辺) - (右辺) = 0 の形に直す
+        if equal_sign_count == 1:
             left_side, right_side = expression.split('=')
             left_expr = sp.sympify(left_side.strip())
             right_expr = sp.sympify(right_side.strip())
 
-            # 方程式を解く
-            eq = sp.Eq(left_expr, right_expr)
-            solutions = sp.solve(eq)
+            # 変数の取得
+            variables = list(left_expr.free_symbols.union(right_expr.free_symbols))
+            if len(variables) == 2:
+                var1, var2 = sorted(variables, key=lambda v: str(v))  # アルファベット順でソート
+                image_path = plot_graph(left_expr, right_expr, str(var1), str(var2))  # グラフを描画
+                return image_path  # 画像パスを返す
+            elif len(variables) == 1:
+                eq = sp.Eq(left_expr, right_expr)
+                solution = sp.solve(eq, variables[0])
+                return f"{variables[0]} = {solution[0]}" if solution else "解なし"
 
-            # 解を指定された形式で整形
-            result = "\n".join([f"{var} = {sol}" for var, sol in solutions.items()]).replace('[', '').replace(']', '')
-            return result if result else "解なし"  # 解がない場合の処理
+            return "方程式には2つの変数を含めてください！"
 
         elif equal_sign_count > 1:
             return "方程式には等号 (=) をちょうど1個含めてください！"
         else:
-            # それ以外は式の簡略化
             simplified_expr = sp.simplify(sp.sympify(expression))
             simplified_expr_str = str(simplified_expr).replace('*', '')
             return f"{simplified_expr_str}"
 
     except (sp.SympifyError, TypeError) as e:
-        print(f"SymPy error: {e}")  # エラー内容を出力
+        print(f"SymPy error: {e}")
         return "数式または方程式を正しく入力してください！"
 
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     user_message = event.message.text
     try:
-        #response = send_request_with_retry(user_message)
-        #ai_response = response.choices[0].message.content.strip()
         ai_response = simplify_or_solve(user_message)
+        if ai_response.endswith('.png'):
+            # 画像パスが返された場合は画像を送信
+            image_url = os.path.abspath(ai_response)  # 画像の絶対パスを取得
+            with open(image_url, 'rb') as image_file:
+                line_bot_api = MessagingApi(ApiClient(configuration))
+                line_bot_api.reply_message_with_http_info(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
+                    )
+                )
+        else:
+            # テキスト応答の場合
+            with ApiClient(configuration) as api_client:
+                line_bot_api = MessagingApi(api_client)
+                line_bot_api.reply_message_with_http_info(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(text=ai_response)]
+                    )
+                )
     except Exception as e:
         print(f"Error: {e}")
         ai_response = "現在、システムが混み合っているため、しばらくお待ちください。"
-
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message_with_http_info(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text=ai_response)]
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            line_bot_api.reply_message_with_http_info(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(text=ai_response)]
+                )
             )
-        )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT"))
