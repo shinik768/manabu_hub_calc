@@ -129,8 +129,12 @@ def simplify_or_solve(expression):
             variables = list(left_expr.free_symbols.union(right_expr.free_symbols))
             if len(variables) == 2:
                 var1, var2 = sorted(variables, key=lambda v: str(v))  # アルファベット順でソート
-                image_path = plot_graph(left_expr, right_expr, str(var1), str(var2))  # グラフを描画
-                return image_path  # 画像パスを返す
+                simplified_expr = sp.simplify(left_expr - right_expr)
+
+                # 文字を含む式 = 定数の形に整理
+                constant = simplified_expr.subs({var1: 0, var2: 0})  # 定数部分を計算
+                formatted_expression = str(simplified_expr).replace('*', '')
+                return f"{formatted_expression} = {constant}"  # 整理した数式を返す
             elif len(variables) == 1:
                 eq = sp.Eq(left_expr, right_expr)
                 solution = sp.solve(eq, variables[0])
@@ -147,7 +151,7 @@ def simplify_or_solve(expression):
 
     except (sp.SympifyError, TypeError) as e:
         print(f"SymPy error: {e}")
-        return "数式または方程式を正しく入力してください！"
+        return "数式を正しく入力してください！"
 
 def delete_image_after_delay(image_path, delay=86400):  # デフォルトは86400秒（24時間）
     time.sleep(delay)
