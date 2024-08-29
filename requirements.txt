@@ -46,6 +46,7 @@ sympy==1.13.2
 tqdm==4.66.5
 typing_extensions==4.12.2
 urllib3==2.2.2
+uuid==1.30
 Werkzeug==3.0.4
 wrapt==1.16.0
 yarl==1.9.4

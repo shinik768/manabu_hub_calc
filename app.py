@@ -24,6 +24,7 @@ from linebot.v3.webhooks import (
     MessageEvent,
     TextMessageContent
 )
+import uuid  # 追加
 
 app = Flask(__name__)
 
@@ -95,8 +96,9 @@ def plot_graph(left_expr, right_expr, var1, var2):
     plt.xlim(-10, 10)
     plt.ylim(-10, 10)
 
-    # 画像を保存
-    image_path = os.path.join('static', 'graph.png')  # staticフォルダに保存
+    # ランダムな文字列を生成して画像を保存
+    random_string = uuid.uuid4().hex  # ランダムな文字列を生成
+    image_path = os.path.join('static', f'graph_{random_string}.png')  # staticフォルダに保存
     plt.savefig(image_path)
     plt.close()
 
@@ -134,7 +136,7 @@ def simplify_or_solve(expression):
                 solution = sp.solve(eq, variables[0])
                 return f"{variables[0]} = {solution[0]}" if solution else "解なし"
 
-            return "方程式には2つの変数を含めてください！"
+            return "方程式には1つまたは2つの変数を含めてください！"
 
         elif equal_sign_count > 1:
             return "方程式には等号 (=) をちょうど1個含めてください！"
@@ -154,7 +156,7 @@ def handle_message(event):
         ai_response = simplify_or_solve(user_message)
         if ai_response.endswith('.png'):
             # 画像パスが返された場合は画像を送信
-            image_url = f"https://manabu-hub-ai.onrender.com/static/graph.png"  # RenderのURLを指定
+            image_url = f"https://manabu-hub-ai.onrender.com/static/{os.path.basename(ai_response)}"  # RenderのURLを指定
             line_bot_api = MessagingApi(ApiClient(configuration))
             line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
@@ -162,6 +164,9 @@ def handle_message(event):
                     messages=[ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
                 )
             )
+            # 画像を送信した後に削除
+            os.remove(ai_response)
+            print(f"画像ファイルが削除されました: {ai_response}")
         else:
             # テキスト応答の場合
             with ApiClient(configuration) as api_client:
