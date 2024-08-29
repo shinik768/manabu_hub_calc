@@ -63,13 +63,13 @@ def handle_message(event):
     user_message = event.message.text
 
     try:
-        response = openai.Completion.create(
-            engine="text-davinci-003",  # 使用するモデル
-            prompt=user_message,
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",  # 使用するモデル
+            messages=[
+                {"role": "system", "content": "あなたは高校生の勉強の質問や相談に答えるボランティアをしています。"},
+                {"role": "user", "content": user_message}
+            ],
             max_tokens=1024,  # 生成するトークンの最大数
-            n=1,
-            stop=None,
-            temperature=0.5,
         )
         ai_response = response.choices[0].text.strip()
 
