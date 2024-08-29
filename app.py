@@ -96,10 +96,11 @@ def plot_graph(left_expr, right_expr, var1, var2):
     plt.ylim(-10, 10)
 
     # 画像を保存
-    image_path = 'graph.png'
+    image_path = os.path.join(os.getcwd(), 'graph.png')  # 修正された部分
     plt.savefig(image_path)
     plt.close()  # プロットを閉じる
     return image_path
+
 
 def simplify_or_solve(expression):
     try:
@@ -144,9 +145,10 @@ def handle_message(event):
     try:
         ai_response = simplify_or_solve(user_message)
         if ai_response.endswith('.png'):
-            # 画像パスが返された場合は画像を送信
-            image_url = os.path.abspath(ai_response)  # 画像の絶対パスを取得
-            with open(image_url, 'rb') as image_file:
+            # RenderのアプリケーションURL
+            render_base_url = "https://manabu-hub-ai.onrender.com/"
+            image_url = f"{render_base_url}/{ai_response}"  # 画像のURLを作成
+            with open(ai_response, 'rb') as image_file:
                 line_bot_api = MessagingApi(ApiClient(configuration))
                 line_bot_api.reply_message_with_http_info(
                     ReplyMessageRequest(
@@ -175,6 +177,7 @@ def handle_message(event):
                     messages=[TextMessage(text=ai_response)]
                 )
             )
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT"))
