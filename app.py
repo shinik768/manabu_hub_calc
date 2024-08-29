@@ -104,8 +104,6 @@ def plot_graph(left_expr, right_expr, var1, var2):
     plt.grid()
     plt.axhline(0, color='black', linewidth=0.5, ls='--')
     plt.axvline(0, color='black', linewidth=0.5, ls='--')
-    plt.xlim(-10, 10)
-    plt.ylim(-10, 10)
 
     # ランダムな文字列を生成して画像を保存
     random_string = uuid.uuid4().hex  # ランダムな文字列を生成
@@ -143,17 +141,21 @@ def simplify_or_solve(expression):
             else:
                 eq = sp.Eq(left_expr - right_expr, 0)
                 try:
-                    solutions = sp.solve(eq)
+                    solutions = {var: sp.solve(eq, var) for var in variables}
                 except Exception as e:
                     print(f"エラー: {e}")
                     return "解を求める際にエラーが発生しました。"
 
-                if isinstance(solutions, list):
-                    result = "\n".join([f"{variables[0]} = {sol}" for sol in solutions]).replace('[', '').replace(']', '')
-                else:
-                    result = f"{variables[0]} = {solutions}"  # 解が1つだけの場合
+                # 解の表示形式を調整
+                result = ""
+                for var, sols in solutions.items():
+                    if isinstance(sols, list):
+                        for sol in sols:
+                            result += f"{var} = {sol}\n"
+                    else:
+                        result += f"{var} = {sols}\n"
 
-                return result if result else "解なし"  # 解がない場合の処理
+                return result.strip() if result else "解なし"  # 解がない場合の処理
 
         elif equal_sign_count > 1:
             return "方程式には等号 (=) をちょうど1個含めてください！"
