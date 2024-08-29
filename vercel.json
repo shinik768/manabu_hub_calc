@@ -8,7 +8,7 @@
     ],
     "routes": [
         {
-            "src": "/callback",
+            "src": "/webhook",
             "methods": ["POST"],
             "dest": "index.js"
         },
