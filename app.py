@@ -67,19 +67,23 @@ def send_request_with_retry(user_message):
     raise Exception("Failed to send request after multiple retries.")
 
 def add_spaces(expression):
-    # `+` と `-` の前にスペースを追加
     expression = re.sub(r'(?<=[^\s\+\-])(?=[\+\-])', ' ', expression)
     return expression
 
 def add_multiplication_sign(expression):
-    # 数字と変数の間に乗算記号 (*) を追加
-    expression = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expression)
+    # 省略された乗算の記号を追加
+    expression = re.sub(r'(?<=[\d])(?=[a-zA-Z])', '*', expression)  # 数字と変数の間
+    expression = re.sub(r'(?<=[a-zA-Z])(?=[(])', '*', expression)  # 変数と括弧の間
     return expression
 
 def add_exponentiation_sign(expression):
-    # `^` を `**` に変換
-    expression = expression.replace('^', '**')
+    # 指数の記号を追加
+    expression = re.sub(r'(?<=[\d])\^', '**', expression)  # ^を**に変換
     return expression
+
+def is_derivative_equation(expression):
+    # 微分方程式かどうかを判定
+    return ('d/' in expression or 'd^' in expression)
 
 def simplify_or_solve(expression):
     try:
@@ -91,55 +95,55 @@ def simplify_or_solve(expression):
         # `=` の数をカウント
         equal_sign_count = expression.count('=')
 
-        # 微分方程式のチェック
-        # d(変数)/d(変数) または d^n(変数)/d(変数)^n の形を探す
-        derivative_match = re.match(r'^(d(\^(\d+))?([a-zA-Z])/?d([a-zA-Z])\s*=\s*(.*))$', expression)
-        if derivative_match:
-            n = derivative_match.group(3)  # 微分の階数
-            var_from = derivative_match.group(4)  # 微分対象の変数
-            var_to = derivative_match.group(5)  # 微分の変数
-            right_expr = derivative_match.group(6)  # 右辺の式
-            
-            if n is None:
-                n = 1
-            else:
-                n = int(n)
+        if is_derivative_equation(expression):
+            # 微分方程式の処理
+            # d^n(variable)/d(variable)^n または d(variable)/d(variable) の形式を検出
+            derivative_pattern = r'(d(\^(\d+))?([a-zA-Z])/?d([a-zA-Z])\s*=\s*(.*))'
+            parts = re.split(r'\s*=\s*', expression)
 
-            # 微分方程式を生成
-            f_from = sp.Function(var_from)(sp.Symbol(var_to))
-            f_to = sp.sympify(right_expr.strip())
+            if len(parts) == 2:
+                left_side = parts[0].strip()
+                right_side = parts[1].strip()
 
-            # dsolveを用いて解く
-            eq = sp.Eq(sp.Derivative(f_from, sp.Symbol(var_to), n), f_to)
-            solution = sp.dsolve(eq, f_from)
+                # 左辺の微分形式を処理
+                derivative_match = re.match(derivative_pattern, left_side)
+                if derivative_match:
+                    n = derivative_match.group(3)
+                    var_from = derivative_match.group(4)
+                    var_to = derivative_match.group(5)
 
-            if solution is not None:
-                return f"{solution}"
-            else:
-                return "解けない微分方程式です。"
-            
+                    if n is None:
+                        n = 1
+                    else:
+                        n = int(n)
+
+                    # 微分方程式を生成
+                    f_from = sp.Function(var_from)(sp.Symbol(var_to))
+                    f_to = sp.sympify(right_side.strip())
+
+                    # dsolveを用いて解く
+                    eq = sp.Eq(sp.Derivative(f_from, sp.Symbol(var_to), n), f_to)
+                    solution = sp.dsolve(eq, f_from)
+
+                    if solution is not None:
+                        return f"{solution}"
+                    else:
+                        return "解けない微分方程式です。"
+
         elif equal_sign_count == 1:
-            # 左辺と右辺に分割
+            # 左辺と右辺に分割し、(左辺) - (右辺) = 0 の形に直す
             left_side, right_side = expression.split('=')
-            left_expr = sp.sympify(left_side)
-            right_expr = sp.sympify(right_side)
+            left_expr = sp.sympify(left_side.strip())
+            right_expr = sp.sympify(right_side.strip())
 
             # 方程式を解く
-            variables = left_expr.free_symbols
-            if len(variables) > 0:
-                solutions = {}
-                for var in variables:
-                    solution = sp.solve(left_expr - right_expr, var)
-                    # 解が存在するか確認
-                    if solution:
-                        solutions[var] = solution[0] if len(solution) == 1 else solution
-                    else:
-                        solutions[var] = "解なし"  # 解がない場合の処理
-                # 解を指定された形式で整形
-                result = "\n".join([f"{var} = {sol}" for var, sol in solutions.items()]).replace('[', '').replace(']', '')
-                return result
-            else:
-                return "方程式には変数を含めてください！"
+            eq = sp.Eq(left_expr, right_expr)
+            solutions = sp.solve(eq)
+
+            # 解を指定された形式で整形
+            result = "\n".join([f"{var} = {sol}" for var, sol in solutions.items()]).replace('[', '').replace(']', '')
+            return result if result else "解なし"  # 解がない場合の処理
+
         elif equal_sign_count > 1:
             return "方程式には等号 (=) をちょうど1個含めてください！"
         else:
@@ -147,21 +151,11 @@ def simplify_or_solve(expression):
             simplified_expr = sp.simplify(sp.sympify(expression))
             simplified_expr_str = str(simplified_expr).replace('*', '')
             return f"{simplified_expr_str}"
+
     except (sp.SympifyError, TypeError) as e:
         print(f"SymPy error: {e}")  # エラー内容を出力
         return "数式または方程式を正しく入力してください！"
 
-def solve_differential_equation(equation):
-    # 微分方程式を解く機能を追加
-    try:
-        # 微分方程式の処理
-        solution = sp.dsolve(sp.sympify(equation))
-        return f"微分方程式の解: {solution}" if solution else "解なし"
-    except Exception as e:
-        print(f"解けない微分方程式: {e}")  # 解けない場合はコメントを出力
-        return "エラー: 微分方程式の解決中にエラーが発生しました。"
-
-    
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     user_message = event.message.text
