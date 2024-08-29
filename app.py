@@ -1,5 +1,6 @@
 import os
 import openai
+import time
 
 from os.path import join, dirname
 
@@ -58,23 +59,30 @@ def callback():
 
 openai.api_key = "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"
 
+def send_request_with_retry(user_message):
+    for attempt in range(3):  # 最大3回のリトライ
+        try:
+            response = openai.chat.completions.create(
+                model="gpt-3.5-turbo",  # 使用するモデル
+                messages=[
+                    {"role": "user", "content": user_message}
+                ],
+                max_tokens=1024,
+            )
+            return response
+        except openai.RateLimitError as e:
+            print(f"Rate limit exceeded. Retrying in {2**attempt} seconds.")
+            time.sleep(2**attempt)
+    raise Exception("Failed to send request after multiple retries.")
+
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     user_message = event.message.text
-
     try:
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",  # 使用するモデル
-            messages=[
-                {"role": "system", "content": "あなたは高校生の勉強の質問や相談に答えるボランティアをしています。"},
-                {"role": "user", "content": user_message}
-            ],
-            max_tokens=1024,  # 生成するトークンの最大数
-        )
-        ai_response = response.choices[0].text.strip()
-
-    except openai.error.APIError as e:
-        print(f"OpenAI API Error: {e}")
+        response = send_request_with_retry(user_message)
+        ai_response = response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Error: {e}")
         ai_response = "現在、システムが混み合っているため、しばらくお待ちください。"
 
     with ApiClient(configuration) as api_client:
