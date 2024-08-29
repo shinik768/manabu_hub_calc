@@ -99,7 +99,15 @@ def plot_graph(left_expr, right_expr, var1, var2):
     image_path = os.path.join(os.getcwd(), 'graph.png')  # 修正された部分
     plt.savefig(image_path)
     plt.close()  # プロットを閉じる
+
+    # 画像ファイルの存在を確認
+    if os.path.exists(image_path):
+        print(f"画像ファイルが保存されました: {image_path}")
+    else:
+        print("画像ファイルの保存に失敗しました。")
+    
     return image_path
+
 
 
 def simplify_or_solve(expression):
