@@ -77,14 +77,13 @@ def add_multiplication_sign(expression):
 def add_exponentiation_sign(expression):
     expression = re.sub(r'(?<=[\d])\^', '**', expression)  # ^を**に変換
     expression = re.sub(r'(?<=[a-zA-Z])(?=\d)', '**', expression)  # 文字の後に数字が来る場合
+    expression = re.sub(r'(?<=[)])(?=\d)', '**', expression)  # 括弧の後に数字が来る場合
     return expression
 
-def format_equation(left_expr, right_expr, var1, var2):
-    """数式を「（文字を含む式）＝（定数）」の形に整形します。"""
+def format_equation(left_expr, right_expr):
     simplified_expr = sp.simplify(left_expr - right_expr)  # 左辺と右辺の差を簡略化
-    constant = simplified_expr.subs({var1: 0, var2: 0})  # 定数部分を計算
     formatted_expr = str(simplified_expr).replace('*', '').replace('**', '^')  # 形式を整形
-    return f"{formatted_expr} = {constant}"
+    return f"{formatted_expr} = 0"
 
 def plot_graph(left_expr, right_expr, var1, var2):
     # 変数の範囲を設定
@@ -97,7 +96,7 @@ def plot_graph(left_expr, right_expr, var1, var2):
 
     plt.figure(figsize=(8, 6))
     # タイトルを整形して設定
-    graph_title = format_equation(left_expr, right_expr, var1, var2)
+    graph_title = format_equation(left_expr, right_expr)
     plt.contour(X, Y, Z, levels=[0], colors='blue')  # 等高線を描画
     plt.title(graph_title)
     plt.xlabel(var1)
