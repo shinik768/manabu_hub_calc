@@ -82,36 +82,39 @@ def simplify_or_solve(expression):
         expression = add_spaces(expression)
         expression = add_multiplication_sign(expression)
 
-        # デバッグ出力: 調整後の式
-        print(f"Processed expression: {expression}")
+        # `=` の数をカウント
+        equal_sign_count = expression.count('=')
 
-        # 入力された式をSymPyでシンボリックに変換
-        expr = sp.sympify(expression)
+        # 等号の数に応じた処理
+        if equal_sign_count == 1:
+            # 左辺と右辺に分割
+            left_side, right_side = expression.split('=')
+            left_expr = sp.sympify(left_side)
+            right_expr = sp.sympify(right_side)
 
-        # デバッグ出力: sympify後の式
-        print(f"SymPy expression: {expr}")
-
-        if isinstance(expr, sp.Equality):
-            variables = expr.free_symbols
-
+            # 方程式を解く
+            variables = left_expr.free_symbols
             if len(variables) > 0:
                 solutions = {}
                 for var in variables:
-                    solution = sp.solve(expr, var)
+                    solution = sp.solve(left_expr - right_expr, var)
                     solutions[var] = solution
                 # 解を指定された形式で整形
                 result = "\n".join([f"{var} = {sol}" for var, sol in solutions.items()])
                 return result
             else:
-                return "エラー: 方程式に変数が含まれていません。"
+                return "方程式には変数を含めてください！"
+        elif equal_sign_count > 1:
+            return "方程式には等号 (=) をちょうど1個含めてください！"
         else:
-            simplified_expr = sp.simplify(expr)
+            # それ以外は式の簡略化
+            simplified_expr = sp.simplify(sp.sympify(expression))
             # '*' を省略した形式で出力
             simplified_expr_str = str(simplified_expr).replace('*', '')
             return f"簡略化された式: {simplified_expr_str}"
     except (sp.SympifyError, TypeError) as e:
         print(f"SymPy error: {e}")  # エラー内容を出力
-        return "エラー: 数式または方程式を正しく入力してください。"
+        return "数式を正しく入力してください！"
     
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
