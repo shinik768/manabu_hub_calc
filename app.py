@@ -2,6 +2,7 @@ import os
 import openai
 import sympy as sp
 import time
+import re
 
 from flask import Flask, request, abort
 
@@ -65,8 +66,16 @@ def send_request_with_retry(user_message):
             time.sleep(2**attempt)
     raise Exception("Failed to send request after multiple retries.")
 
+def add_spaces(expression):
+    # `+` と `-` の前にスペースを追加
+    expression = re.sub(r'(?<=[^\s\+\-])(?=[\+\-])', ' ', expression)
+    return expression
+
 def simplify_or_solve(expression):
     try:
+        # 入力された式のフォーマットを調整
+        expression = add_spaces(expression)
+        
         # 入力された式をSymPyでシンボリックに変換
         expr = sp.sympify(expression)
 
@@ -75,12 +84,15 @@ def simplify_or_solve(expression):
             # 方程式の変数を取得
             variables = expr.free_symbols
 
-            if len(variables) == 1:
-                # 一つの変数に対して解を求める
-                solution = sp.solve(expr, list(variables)[0])
-                return f"{list(variables)[0]} に対する解: {solution}"
+            if len(variables) > 0:
+                # 複数の変数に対して解を求める
+                solutions = {}
+                for var in variables:
+                    solution = sp.solve(expr, var)
+                    solutions[var] = solution
+                return {str(var): sol for var, sol in solutions.items()}
             else:
-                return "エラー: 方程式に複数の文字が含まれています。"
+                return "エラー: 方程式に変数が含まれていません。"
         else:
             # それ以外は式の簡略化
             simplified_expr = sp.simplify(expr)
