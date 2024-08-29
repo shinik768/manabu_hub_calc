@@ -38,8 +38,8 @@ load_dotenv(dotenv_path)
 """
 
 llm = Llama.from_pretrained(
-	repo_id="mmnga/SakanaAI-EvoLLM-JP-v1-7B-gguf",
-	filename="SakanaAI-EvoLLM-JP-v1-7B-q2_K.gguf",
+	repo_id="TheBloke/Llama-2-13B-chat-GGUF",
+	filename="llama-2-13b-chat.Q2_K.gguf",
 )
 
 configuration = Configuration(access_token='555PuOD9CCSli2bcvs2PtWKO1TPixYgqg7ZmqRgVoqUTPko+RmQG65KaCAZNKGcO0xGd8fj3LGbkQvteTwr3EV+x4kuba/boP+YTFrS3KQvf/1di47nhtxeheXf7Pf6rYqU3OONhiwZKdN7FEUftYQdB04t89/1O/w1cDnyilFU=')
@@ -87,7 +87,7 @@ def handle_message(event):
     user_message = event.message.text
     try:
         #response = send_request_with_retry(user_message)
-        #ai_response = response.choices[0].message.content.strip()
+        #ai_response = response.choices[0].message.content.strip()       
         response = llm.create_chat_completion(
             messages = [
                 {
@@ -106,7 +106,6 @@ def handle_message(event):
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                #messages=[TextMessage(text=ai_response)]
                 messages=[TextMessage(text=ai_response)]
             )
         )
