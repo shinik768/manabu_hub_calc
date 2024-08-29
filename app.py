@@ -96,9 +96,9 @@ def plot_graph(left_expr, right_expr, var1, var2):
     plt.ylim(-10, 10)
 
     # 画像を保存
-    image_path = os.path.join(os.getcwd(), 'graph.png')  # 修正された部分
+    image_path = os.path.join('static', 'graph.png')  # staticフォルダに保存
     plt.savefig(image_path)
-    plt.close()  # プロットを閉じる
+    plt.close()
 
     # 画像ファイルの存在を確認
     if os.path.exists(image_path):
@@ -153,17 +153,15 @@ def handle_message(event):
     try:
         ai_response = simplify_or_solve(user_message)
         if ai_response.endswith('.png'):
-            # RenderのアプリケーションURL
-            render_base_url = "https://manabu-hub-ai.onrender.com/"
-            image_url = f"{render_base_url}/{ai_response}"  # 画像のURLを作成
-            with open(ai_response, 'rb') as image_file:
-                line_bot_api = MessagingApi(ApiClient(configuration))
-                line_bot_api.reply_message_with_http_info(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
-                    )
+            # 画像パスが返された場合は画像を送信
+            image_url = f"https://manabu-hub-ai.onrender.com/static/graph.png"  # RenderのURLを指定
+            line_bot_api = MessagingApi(ApiClient(configuration))
+            line_bot_api.reply_message_with_http_info(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
                 )
+            )
         else:
             # テキスト応答の場合
             with ApiClient(configuration) as api_client:
@@ -185,7 +183,6 @@ def handle_message(event):
                     messages=[TextMessage(text=ai_response)]
                 )
             )
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT"))
