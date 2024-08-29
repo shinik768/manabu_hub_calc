@@ -82,7 +82,7 @@ def add_exponentiation_sign(expression):
 
 def format_equation(left_expr, right_expr):
     simplified_expr = sp.simplify(left_expr - right_expr)  # 左辺と右辺の差を簡略化
-    formatted_expr = str(simplified_expr).replace('*', '').replace('**', '^')  # 形式を整形
+    formatted_expr = str(simplified_expr).replace('**', '^').replace('*', '')  # 形式を整形
     return f"{formatted_expr} = 0"
 
 def plot_graph(left_expr, right_expr, var1, var2, graph_title):
@@ -148,11 +148,12 @@ def simplify_or_solve(expression):
                 else:
                     result += f"{var} = {sols}\n"
             
-            solusions = result.strip() if result else "解なし" # 解がない場合の処理
+            result_str = result.strip() if result else "解なし" # 解がない場合の処理
+            result_str = str(result_str).replace('**', '^').replace('*', '')  # 形式を整形
             if len (variables) != 2:
-                return solusions 
+                return result_str
             else:
-                graph_title = solusions
+                graph_title = result_str
                 var1, var2 = sorted(variables, key=lambda v: str(v))  # アルファベット順でソート
                 image_path = plot_graph(left_expr, right_expr, str(var1), str(var2), graph_title)  # グラフを描画
                 return image_path  # 画像パスを返す
