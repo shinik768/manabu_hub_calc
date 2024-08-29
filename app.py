@@ -71,11 +71,17 @@ def add_spaces(expression):
     expression = re.sub(r'(?<=[^\s\+\-])(?=[\+\-])', ' ', expression)
     return expression
 
+def add_multiplication_sign(expression):
+    # 数字と変数の間に乗算記号 (*) を追加
+    expression = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expression)
+    return expression
+
 def simplify_or_solve(expression):
     try:
         # 入力された式のフォーマットを調整
         expression = add_spaces(expression)
-        
+        expression = add_multiplication_sign(expression)
+
         # デバッグ出力: 調整後の式
         print(f"Processed expression: {expression}")
 
@@ -93,12 +99,16 @@ def simplify_or_solve(expression):
                 for var in variables:
                     solution = sp.solve(expr, var)
                     solutions[var] = solution
-                return {str(var): sol for var, sol in solutions.items()}
+                # 解を指定された形式で整形
+                result = "\n".join([f"{var} = {sol}" for var, sol in solutions.items()])
+                return result
             else:
                 return "エラー: 方程式に変数が含まれていません。"
         else:
             simplified_expr = sp.simplify(expr)
-            return f"簡略化された式: {simplified_expr}"
+            # '*' を省略した形式で出力
+            simplified_expr_str = str(simplified_expr).replace('*', '')
+            return f"簡略化された式: {simplified_expr_str}"
     except (sp.SympifyError, TypeError) as e:
         print(f"SymPy error: {e}")  # エラー内容を出力
         return "エラー: 数式または方程式を正しく入力してください。"
