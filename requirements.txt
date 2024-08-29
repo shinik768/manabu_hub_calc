@@ -14,13 +14,16 @@ Deprecated==1.2.14
 diskcache==5.6.3
 distro==1.9.0
 exceptiongroup==1.2.2
+filelock==3.15.4
 Flask==3.0.3
 frozenlist==1.4.1
+fsspec==2024.6.1
 future==1.0.0
 gunicorn==23.0.0
 h11==0.14.0
 httpcore==1.0.5
 httpx==0.27.2
+huggingface-hub==0.24.6
 idna==3.8
 itsdangerous==2.2.0
 Jinja2==3.1.4
@@ -36,6 +39,7 @@ pydantic==2.8.2
 pydantic_core==2.20.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
+PyYAML==6.0.2
 requests==2.32.3
 six==1.16.0
 sniffio==1.3.1
