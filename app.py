@@ -1,5 +1,6 @@
 import os
 import openai
+import sympy as sp
 import time
 
 from flask import Flask, request, abort
@@ -64,13 +65,36 @@ def send_request_with_retry(user_message):
             time.sleep(2**attempt)
     raise Exception("Failed to send request after multiple retries.")
 
+def simplify_or_solve(expression):
+    try:
+        # 入力された式をSymPyでシンボリックに変換
+        expr = sp.sympify(expression)
+
+        # 式が等式 (方程式) である場合
+        if isinstance(expr, sp.Equality):
+            # 方程式の変数を取得
+            variables = expr.free_symbols
+
+            if len(variables) == 1:
+                # 一つの変数に対して解を求める
+                solution = sp.solve(expr, list(variables)[0])
+                return f"{list(variables)[0]} に対する解: {solution}"
+            else:
+                return "エラー: 方程式に複数の文字が含まれています。"
+        else:
+            # それ以外は式の簡略化
+            simplified_expr = sp.simplify(expr)
+            return f"簡略化された式: {simplified_expr}"
+    except (sp.SympifyError, TypeError):
+        return "エラー: 数式または方程式を正しく入力してください。"
+    
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     user_message = event.message.text
     try:
         #response = send_request_with_retry(user_message)
         #ai_response = response.choices[0].message.content.strip()
-        ai_response = user_message       
+        ai_response = simplify_or_solve(user_message)
     except Exception as e:
         print(f"Error: {e}")
         ai_response = "現在、システムが混み合っているため、しばらくお待ちください。"
