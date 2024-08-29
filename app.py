@@ -24,7 +24,7 @@ from linebot.v3.webhooks import (
     TextMessageContent
 )
 
-from llama_cpp import Llama
+#from llama_cpp import Llama
 
 #from dotenv import load_dotenv
 
@@ -37,10 +37,10 @@ dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 """
 
-llm = Llama.from_pretrained(
+"""llm = Llama.from_pretrained(
 	repo_id="TheBloke/Llama-2-13B-chat-GGUF",
 	filename="llama-2-13b-chat.Q2_K.gguf",
-)
+)"""
 
 configuration = Configuration(access_token='555PuOD9CCSli2bcvs2PtWKO1TPixYgqg7ZmqRgVoqUTPko+RmQG65KaCAZNKGcO0xGd8fj3LGbkQvteTwr3EV+x4kuba/boP+YTFrS3KQvf/1di47nhtxeheXf7Pf6rYqU3OONhiwZKdN7FEUftYQdB04t89/1O/w1cDnyilFU=')
 handler = WebhookHandler('4262a7e6930a464d7af5f2c76e9ad7c0')
@@ -86,9 +86,9 @@ def send_request_with_retry(user_message):
 def handle_message(event):
     user_message = event.message.text
     try:
-        #response = send_request_with_retry(user_message)
-        #ai_response = response.choices[0].message.content.strip()       
-        response = llm.create_chat_completion(
+        response = send_request_with_retry(user_message)
+        ai_response = response.choices[0].message.content.strip()       
+        """response = llm.create_chat_completion(
             messages = [
                 {
                     "role": "user",
@@ -96,7 +96,7 @@ def handle_message(event):
                 }
             ]
         )
-        ai_response = response["choices"][0]["text"]
+        ai_response = response["choices"][0]["text"]"""
     except Exception as e:
         print(f"Error: {e}")
         ai_response = "現在、システムが混み合っているため、しばらくお待ちください。"
@@ -111,5 +111,5 @@ def handle_message(event):
         )
 
 if __name__ == "__main__":
-    #port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=8080)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
