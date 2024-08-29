@@ -75,6 +75,7 @@ def add_multiplication_sign(expression):
 
 def add_exponentiation_sign(expression):
     expression = re.sub(r'(?<=[\d])\^', '**', expression)  # ^を**に変換
+    expression = re.sub(r'(?<=[a-zA-Z])(?=\d)', '**', expression)  # 文字の後に数字が来る場合
     return expression
 
 def plot_graph(left_expr, right_expr, var1, var2):
@@ -110,8 +111,6 @@ def plot_graph(left_expr, right_expr, var1, var2):
         print("画像ファイルの保存に失敗しました。")
     
     return image_path
-
-
 
 def simplify_or_solve(expression):
     try:
@@ -150,37 +149,39 @@ def simplify_or_solve(expression):
         print(f"SymPy error: {e}")
         return "数式または方程式を正しく入力してください！"
 
-async def send_image_and_delete(image_path, reply_token):
-    # 画像を送信
+async def send_image_and_delete(event, image_path):
+    # 画像URLを生成
     image_url = f"https://manabu-hub-ai.onrender.com/static/{os.path.basename(image_path)}"
     
     line_bot_api = MessagingApi(ApiClient(configuration))
-    await line_bot_api.reply_message_with_http_info(
+    response = await line_bot_api.reply_message_with_http_info(
         ReplyMessageRequest(
-            reply_token=reply_token,
+            reply_token=event.reply_token,
             messages=[ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
         )
     )
-    
-    # 画像を削除
+    print("画像送信応答:", response)
+
+    # 画像送信が成功した後に削除
     os.remove(image_path)
     print(f"画像ファイルが削除されました: {image_path}")
 
+
 @handler.add(MessageEvent, message=TextMessageContent)
-def handle_message(event):
+async def handle_message(event):
     user_message = event.message.text
     try:
         ai_response = simplify_or_solve(user_message)
         if ai_response.endswith('.png'):
-            image_path = ai_response
+            # 画像パスが返された場合は画像を送信
+            image_path = ai_response  # 画像パスを保存
             
-            # 非同期で画像を送信して削除
-            asyncio.create_task(send_image_and_delete(image_path, event.reply_token))
+            await send_image_and_delete(event, image_path)  # 画像送信関数をawaitで呼び出す
         else:
             # テキスト応答の場合
             with ApiClient(configuration) as api_client:
                 line_bot_api = MessagingApi(api_client)
-                line_bot_api.reply_message_with_http_info(
+                await line_bot_api.reply_message_with_http_info(
                     ReplyMessageRequest(
                         reply_token=event.reply_token,
                         messages=[TextMessage(text=ai_response)]
@@ -191,12 +192,13 @@ def handle_message(event):
         ai_response = "現在、システムが混み合っているため、しばらくお待ちください。"
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
-            line_bot_api.reply_message_with_http_info(
+            await line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
                     messages=[TextMessage(text=ai_response)]
                 )
             )
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT"))
