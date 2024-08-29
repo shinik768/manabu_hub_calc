@@ -81,17 +81,6 @@ def add_exponentiation_sign(expression):
     expression = expression.replace('^', '**')
     return expression
 
-def process_derivatives(expression):
-    # 微分を表すための処理
-    # 文字の直後にある'を削除して、微分の階数を示す
-    derivative_count = {char: expression.count(char + "'") for char in set(expression) - set("0123456789+-*/()= ")}
-    for char, count in derivative_count.items():
-        if count > 0:
-            # 'を置換し、微分の階数に応じて微分を適用
-            for _ in range(count):
-                expression = expression.replace(char + "'", f"sp.diff({char})")
-    return expression, any(derivative_count.values())
-
 def simplify_or_solve(expression):
     try:
         # 入力された式のフォーマットを調整
@@ -99,16 +88,39 @@ def simplify_or_solve(expression):
         expression = add_multiplication_sign(expression)
         expression = add_exponentiation_sign(expression)
 
-        # 微分の処理
-        expression, is_differential_equation = process_derivatives(expression)
-
         # `=` の数をカウント
         equal_sign_count = expression.count('=')
 
-        if is_differential_equation:
-            # 微分方程式の処理
-            solution = solve_differential_equation(expression)
-            return solution
+        # 微分方程式のチェック
+        # d(変数)/d(変数) または d^n(変数)/d(変数)^n の形を探す
+        derivative_pattern = r'd\^?\w+/d\^?\w+'
+        if re.search(derivative_pattern, expression):
+            # 微分方程式を解析する
+            matches = re.findall(derivative_pattern, expression)
+            for match in matches:
+                # 変数の抽出
+                parts = match.split('/')
+                var_from = parts[0][2:]  # dから始まる部分
+                var_to = parts[1][2:]     # dから始まる部分
+
+                # 高階微分の処理
+                order_from = match.count('^')
+                order_to = parts[1].count('^')
+
+                # 関数の定義
+                f_from = sp.Function(var_from)(sp.Symbol('x'))
+                f_to = sp.Function(var_to)(sp.Symbol('x'))
+
+                # 微分方程式を構築
+                if order_from == 0:
+                    eq = sp.Eq(sp.Derivative(f_from, sp.Symbol(var_from)), f_to)
+                else:
+                    eq = sp.Eq(sp.Derivative(f_from, sp.Symbol(var_from), order_from), f_to)
+
+                # 解を求める
+                solution = sp.dsolve(eq, f_from)
+                return str(solution)
+            
         elif equal_sign_count == 1:
             # 左辺と右辺に分割
             left_side, right_side = expression.split('=')
