@@ -91,6 +91,8 @@ const client = new line.messagingApi.MessagingApiClient({
   channelAccessToken: config.channelAccessToken,
 });
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use("/webhook", line.middleware(config));
 app.post("/webhook", (req, res) => {
   Promise.all(req.body.events.map(handleEvent)).then((result) =>
