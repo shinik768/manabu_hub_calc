@@ -141,10 +141,14 @@ def simplify_or_solve(expression):
                 image_path = plot_graph(left_expr, right_expr, str(var1), str(var2))  # グラフを描画
                 return image_path  # 画像パスを返す
             else:
-                eq = sp.Eq(left_expr, right_expr)
-                solutions = sp.solve(eq)
+                eq = sp.Eq(left_expr - right_expr, 0)
+                try:
+                    solutions = sp.solve(eq)
+                except Exception as e:
+                    print(f"エラー: {e}")
                 # 解を指定された形式で整形
                 result = "\n".join([f"{var} = {sol}" for var, sol in solutions.items()]).replace('[', '').replace(']', '')
+                print(result)
                 return result if result else "解なし"  # 解がない場合の処理
 
         elif equal_sign_count > 1:
