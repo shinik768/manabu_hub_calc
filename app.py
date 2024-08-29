@@ -76,16 +76,19 @@ def simplify_or_solve(expression):
         # 入力された式のフォーマットを調整
         expression = add_spaces(expression)
         
+        # デバッグ出力: 調整後の式
+        print(f"Processed expression: {expression}")
+
         # 入力された式をSymPyでシンボリックに変換
         expr = sp.sympify(expression)
 
-        # 式が等式 (方程式) である場合
+        # デバッグ出力: sympify後の式
+        print(f"SymPy expression: {expr}")
+
         if isinstance(expr, sp.Equality):
-            # 方程式の変数を取得
             variables = expr.free_symbols
 
             if len(variables) > 0:
-                # 複数の変数に対して解を求める
                 solutions = {}
                 for var in variables:
                     solution = sp.solve(expr, var)
@@ -94,10 +97,10 @@ def simplify_or_solve(expression):
             else:
                 return "エラー: 方程式に変数が含まれていません。"
         else:
-            # それ以外は式の簡略化
             simplified_expr = sp.simplify(expr)
             return f"簡略化された式: {simplified_expr}"
-    except (sp.SympifyError, TypeError):
+    except (sp.SympifyError, TypeError) as e:
+        print(f"SymPy error: {e}")  # エラー内容を出力
         return "エラー: 数式または方程式を正しく入力してください。"
     
 @handler.add(MessageEvent, message=TextMessageContent)
