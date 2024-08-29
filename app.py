@@ -161,8 +161,9 @@ def simplify_or_solve(expression):
         elif equal_sign_count > 1:
             return "方程式には等号 (=) をちょうど1個含めてください！"
         else:
-            simplified_expr = sp.simplify(sp.sympify(expression))
-            simplified_expr_str = str(simplified_expr).replace('*', '')
+            expanded_expr = sp.expand(sp.sympify(expression))  # 展開
+            simplified_expr = sp.simplify(expanded_expr)  # 簡略化
+            simplified_expr_str = str(simplified_expr).replace('**', '^').replace('*', '')  # 形式を整形
             return f"{simplified_expr_str}"
 
     except (sp.SympifyError, TypeError) as e:
