@@ -85,7 +85,7 @@ def format_equation(left_expr, right_expr):
     formatted_expr = str(simplified_expr).replace('*', '').replace('**', '^')  # 形式を整形
     return f"{formatted_expr} = 0"
 
-def plot_graph(left_expr, right_expr, var1, var2):
+def plot_graph(left_expr, right_expr, var1, var2, graph_title):
     # 変数の範囲を設定
     x_vals = np.linspace(-10, 10, 400)  # xの範囲
     y_vals = np.linspace(-10, 10, 400)  # yの範囲
@@ -95,8 +95,6 @@ def plot_graph(left_expr, right_expr, var1, var2):
     Z = sp.lambdify((var1, var2), left_expr - right_expr, 'numpy')(X, Y)  # Z = 0 になる部分を計算
 
     plt.figure(figsize=(8, 6))
-    # タイトルを整形して設定
-    graph_title = format_equation(left_expr, right_expr)
     plt.contour(X, Y, Z, levels=[0], colors='blue')  # 等高線を描画
     plt.title(graph_title)
     plt.xlabel(var1)
@@ -134,28 +132,30 @@ def simplify_or_solve(expression):
 
             # 変数の取得
             variables = list(left_expr.free_symbols.union(right_expr.free_symbols))
-            if len(variables) == 2:
-                var1, var2 = sorted(variables, key=lambda v: str(v))  # アルファベット順でソート
-                image_path = plot_graph(left_expr, right_expr, str(var1), str(var2))  # グラフを描画
-                return image_path  # 画像パスを返す
+            eq = sp.Eq(left_expr - right_expr, 0)
+            try:
+                solutions = {var: sp.solve(eq, var) for var in variables}
+            except Exception as e:
+                print(f"エラー: {e}")
+                return "解を求める際にエラーが発生しました。"
+
+            # 解の表示形式を調整
+            result = ""
+            for var, sols in sorted(solutions.items(), key=lambda x: str(x[0])):
+                if isinstance(sols, list):
+                    for sol in sols:
+                        result += f"{var} = {sol}\n"
+                else:
+                    result += f"{var} = {sols}\n"
+            
+            solusions = result.strip() if result else "解なし" # 解がない場合の処理
+            if len (variables) != 2:
+                return solusions 
             else:
-                eq = sp.Eq(left_expr - right_expr, 0)
-                try:
-                    solutions = {var: sp.solve(eq, var) for var in variables}
-                except Exception as e:
-                    print(f"エラー: {e}")
-                    return "解を求める際にエラーが発生しました。"
-
-                # 解の表示形式を調整
-                result = ""
-                for var, sols in solutions.items():
-                    if isinstance(sols, list):
-                        for sol in sols:
-                            result += f"{var} = {sol}\n"
-                    else:
-                        result += f"{var} = {sols}\n"
-
-                return result.strip() if result else "解なし"  # 解がない場合の処理
+                graph_title = solusions
+                var1, var2 = sorted(variables, key=lambda v: str(v))  # アルファベット順でソート
+                image_path = plot_graph(left_expr, right_expr, str(var1), str(var2), graph_title)  # グラフを描画
+                return image_path  # 画像パスを返す
 
         elif equal_sign_count > 1:
             return "方程式には等号 (=) をちょうど1個含めてください！"
