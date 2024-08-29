@@ -2,8 +2,6 @@ import os
 import openai
 import time
 
-from os.path import join, dirname
-
 from flask import Flask, request, abort
 
 from linebot.v3 import (
@@ -24,26 +22,10 @@ from linebot.v3.webhooks import (
     TextMessageContent
 )
 
-#from llama_cpp import Llama
-
-#from dotenv import load_dotenv
-
 app = Flask(__name__)
 
-"""
-load_dotenv(verbose=True)
-
-dotenv_path = join(dirname(__file__), '.env')
-load_dotenv(dotenv_path)
-"""
-
-"""llm = Llama.from_pretrained(
-	repo_id="TheBloke/Llama-2-13B-chat-GGUF",
-	filename="llama-2-13b-chat.Q2_K.gguf",
-)"""
-
-configuration = Configuration(access_token='555PuOD9CCSli2bcvs2PtWKO1TPixYgqg7ZmqRgVoqUTPko+RmQG65KaCAZNKGcO0xGd8fj3LGbkQvteTwr3EV+x4kuba/boP+YTFrS3KQvf/1di47nhtxeheXf7Pf6rYqU3OONhiwZKdN7FEUftYQdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('4262a7e6930a464d7af5f2c76e9ad7c0')
+configuration = Configuration(access_token=os.environ.get('LINE_CHANNEL_ACCESS_TOKEN'))
+handler = WebhookHandler(os.environ.get('LINE_CHANNEL_SECRET'))
 
 
 @app.route("/callback", methods=['POST'])
@@ -64,7 +46,7 @@ def callback():
 
     return 'OK'
 
-openai.api_key = "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"
+openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 def send_request_with_retry(user_message):
     for attempt in range(3):  # 最大3回のリトライ
@@ -88,15 +70,6 @@ def handle_message(event):
     try:
         response = send_request_with_retry(user_message)
         ai_response = response.choices[0].message.content.strip()       
-        """response = llm.create_chat_completion(
-            messages = [
-                {
-                    "role": "user",
-                    "content": user_message
-                }
-            ]
-        )
-        ai_response = response["choices"][0]["text"]"""
     except Exception as e:
         print(f"Error: {e}")
         ai_response = "現在、システムが混み合っているため、しばらくお待ちください。"
