@@ -80,7 +80,7 @@ def format_expression(expression):
 
 def format_equation(left_expr, right_expr):
     left_minus_right_expr = left_expr - right_expr  # 左辺と右辺の差を簡略化
-    formatted_expr = format_equation(left_minus_right_expr)
+    formatted_expr = format_expression(left_minus_right_expr)
     return f"{formatted_expr} = 0"
 
 def plot_graph(left_expr, right_expr, var1, var2):
