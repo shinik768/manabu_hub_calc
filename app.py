@@ -65,9 +65,21 @@ def add_exponentiation_sign(expression):
     return expression
 
 def sort_expression(expression):
-    expression = sp.sympify(expression)
+    # 式中に含まれる変数を取得
+    variables = sorted(expression.free_symbols, key=lambda var: str(var)) 
+
+    # 式が変数を含まない場合、そのまま返す
+    if not variables:
+        return expression
+
     terms = expression.as_ordered_terms()
-    sorted_terms = sorted(terms, key=lambda term: (sp.Poly(term).total_degree(), term.as_coefficients_dict().keys()))
+    
+    def get_sort_key(term):
+        poly = sp.Poly(term, *variables) if term.free_symbols else sp.Poly(term)
+        return (poly.total_degree(), term.as_coefficients_dict().keys())
+
+    sorted_terms = sorted(terms, key=get_sort_key)
+    
     sorted_expr = sp.Add(*sorted_terms)
     return sorted_expr
 
@@ -141,7 +153,6 @@ def simplify_or_solve(expression):
                 for var, sols in sorted(solutions.items(), key=lambda x: str(x[0])):
                     if isinstance(sols, list):
                         for sol in sols:
-                            sol = sort_expression(sol)
                             result += f"{var} = {sol}\n"
                     else:
                         result += f"{var} = {sols}\n"
