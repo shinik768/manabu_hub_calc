@@ -202,27 +202,23 @@ def handle_message(event):
             result_str, image_path = response
             image_url = f"https://manabu-hub-calc.onrender.com/static/{os.path.basename(image_path)}"
             
+            # LINE APIクライアントの作成
             line_bot_api = MessagingApi(ApiClient(configuration))
+            
+            # 画像メッセージとテキストメッセージを同時に送信
             line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
-                    messages=[ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
+                    messages=[
+                        ImageMessage(original_content_url=image_url, preview_image_url=image_url),
+                        TextMessage(text=result_str)
+                    ]
                 )
             )
-            print("画像送信応答:", image_path)
+            print("画像とテキストを同時に送信:", image_path)
 
             # 画像送信後に別スレッドで削除処理を開始
             threading.Thread(target=delete_image_after_delay, args=(image_path,)).start()
-            
-            # テキスト応答を送信
-            with ApiClient(configuration) as api_client:
-                line_bot_api = MessagingApi(api_client)
-                line_bot_api.reply_message_with_http_info(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[TextMessage(text=result_str)]
-                    )
-                )
         else:
             result_str = response
             # ここで解のテキストを送信
