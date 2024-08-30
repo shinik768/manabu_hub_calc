@@ -1,5 +1,9 @@
+import threading
 import sympy as sp
 import re
+
+class TimeoutException(Exception):
+    pass
 
 def clean_expression(expression):
     # アルファベット、数字、特定の記号を許容
@@ -67,3 +71,51 @@ def format_equation(left_expr, right_expr):
     left_minus_right_expr = sp.simplify(left_expr - right_expr)  # 左辺と右辺の差を簡略化
     formatted_expr = format_expression(left_minus_right_expr)
     return f"{formatted_expr} = 0"
+
+def clean_and_prepare_expression(expression):
+    expression = clean_expression(expression)
+    expression = add_spaces(expression)
+    expression = change_I_and_i(expression)
+    expression = add_multiplication_sign(expression)
+    expression = add_exponentiation_sign(expression)
+    return expression
+
+def get_variable_range(parts):
+    var1_min, var1_max = -5, 5
+    if len(parts) == 3:
+        try:
+            var1_min, var1_max = sorted(float(num) for num in parts[1:3])
+        except ValueError as e:
+            print(e)
+    return var1_min, var1_max
+
+def solve_equation_in_threads(eq, variables):
+    results = []
+    threads = [threading.Thread(target=solve_equation, args=(eq, var, results)) for var in variables]
+    
+    for thread in threads:
+        thread.start()
+    
+    for thread in threads:
+        thread.join(timeout=10)
+        if thread.is_alive():
+            print("解を求めるのに時間がかかりすぎました。")
+            raise TimeoutException("解を求めるのに時間がかかりすぎました。")
+    
+    return results
+
+def format_solutions(variables, results):
+    sorted_results = [
+        f"{var} = {results[variables.index(var)]}" if not isinstance(results[variables.index(var)], list) 
+        else "\n".join(f"{var} = {sol}" for sol in results[variables.index(var)])
+        for var in sorted(variables, key=str)
+    ]
+    return str("\n".join(sorted_results) or "解なし").replace('**', '^').replace('*', '')
+
+def solve_equation(eq, var, results):
+    try:
+        solution = sp.solve(eq, var)
+        results.append(solution)
+    except Exception as e:
+        print(f"解を求める際にエラーが発生しました: {e}")
+        results.append("解なし")

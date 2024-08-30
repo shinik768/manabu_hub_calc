@@ -13,3 +13,4 @@ ENV/
 *.config
 
 trial.py
+graph_*.png
