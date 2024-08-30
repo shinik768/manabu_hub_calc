@@ -200,7 +200,8 @@ def handle_message(event):
         response = simplify_or_solve(user_message)
         if isinstance(response, tuple) and len(response) == 2:
             result_str, image_path = response
-            image_url = f"https://manabu-hub-calc.onrender.com/static/{os.path.basename(image_path)}"  # RenderのURLを指定          
+            image_url = f"https://manabu-hub-calc.onrender.com/static/{os.path.basename(image_path)}"
+            
             line_bot_api = MessagingApi(ApiClient(configuration))
             line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
@@ -212,17 +213,27 @@ def handle_message(event):
 
             # 画像送信後に別スレッドで削除処理を開始
             threading.Thread(target=delete_image_after_delay, args=(image_path,)).start()
+            
+            # テキスト応答を送信
+            with ApiClient(configuration) as api_client:
+                line_bot_api = MessagingApi(api_client)
+                line_bot_api.reply_message_with_http_info(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(text=result_str)]
+                    )
+                )
         else:
             result_str = response
-        # テキスト応答の場合
-        with ApiClient(configuration) as api_client:
-            line_bot_api = MessagingApi(api_client)
-            line_bot_api.reply_message_with_http_info(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text=result_str)]
+            # ここで解のテキストを送信
+            with ApiClient(configuration) as api_client:
+                line_bot_api = MessagingApi(api_client)
+                line_bot_api.reply_message_with_http_info(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(text=result_str)]
+                    )
                 )
-            )
     except Exception as e:
         print(f"Error: {e}")
         response = "申し訳ございません。エラーが発生したようです。もう一度試しても正常に作動しなければ、お手数お掛けしますがまなぶHUBの公式LINEまでご連絡ください。"
