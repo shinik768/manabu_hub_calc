@@ -73,14 +73,18 @@ def simplify_or_solve(expression):
 
                 # 解の表示形式を調整
                 result = ""
-                for var, sols in zip(variables, results):
+                sorted_results = []
+
+                for var in sorted(variables, key=lambda v: str(v)):  # アルファベット順でソート
+                    index = variables.index(var)
+                    sols = results[index]
                     if isinstance(sols, list):
                         for sol in sols:
-                            result += f"{var} = {sol}\n"
+                            sorted_results.append(f"{var} = {sol}")
                     else:
-                        result += f"{var} = {sols}\n"
+                        sorted_results.append(f"{var} = {sols}")
 
-                result_str = result.strip() if result else "解なし"  # 解がない場合の処理
+                result_str = "\n".join(sorted_results).strip() if sorted_results else "解なし"  # 解がない場合の処理
                 result_str = str(result_str).replace('**', '^').replace('*', '')  # 形式を整形
                 result_str = change_I_and_i(result_str)
 
