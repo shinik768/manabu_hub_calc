@@ -1,4 +1,4 @@
-from  tools.calc_tools import change_I_and_i
+from tools.calc_tools import change_I_and_i
 
 import os
 import sympy as sp
@@ -7,9 +7,11 @@ import matplotlib.pyplot as plt
 import uuid
 
 def simplify_expressions(left_expr, right_expr):
+    # 左辺と右辺の式を簡略化して返す
     return sp.simplify(left_expr), sp.simplify(right_expr)
 
 def compute_y_values(left_expr, right_expr, var1, x_vals, var2):
+    # 与えられたxの値に対するyの値を計算する
     y_vals = []
     for x in x_vals:
         y_vals_at_x = sp.solve(left_expr.subs(var1, x) - right_expr, var2)
@@ -17,6 +19,7 @@ def compute_y_values(left_expr, right_expr, var1, x_vals, var2):
     return y_vals
 
 def adjust_ranges(y_vals, x_min, x_max, margin_rate=0.08):
+    # yの値に基づいてxおよびyの範囲を調整する
     if not y_vals:
         return None, None, None, None
 
@@ -32,13 +35,15 @@ def adjust_ranges(y_vals, x_min, x_max, margin_rate=0.08):
     return y_min, y_max, x_min, x_max
 
 def create_meshgrid(x_min, x_max, y_min, y_max):
+    # 指定された範囲に基づいてメッシュグリッドを作成する
     x_vals_for_plot = np.linspace(x_min, x_max, 400)
     y_vals_for_plot = np.linspace(y_min, y_max, 400)
     return np.meshgrid(x_vals_for_plot, y_vals_for_plot)
 
 def plot_contour(X, Y, Z, graph_title, var1, var2, x_min, x_max, y_min, y_max):
-    plt.figure(figsize=(8, 6))  # 4:3のアスペクト比で図を作成
-    plt.contour(X, Y, Z, levels=[0], colors='blue')  # 等高線を描画
+    # 等高線グラフを描画する
+    plt.figure(figsize=(8, 6))
+    plt.contour(X, Y, Z, levels=[0], colors='blue')
     plt.title(graph_title)
     plt.xlabel(change_I_and_i(var1))
     plt.ylabel(change_I_and_i(var2))
@@ -49,8 +54,9 @@ def plot_contour(X, Y, Z, graph_title, var1, var2, x_min, x_max, y_min, y_max):
     plt.ylim([y_min, y_max])
 
 def save_plot_image():
-    random_string = uuid.uuid4().hex  # ランダムな文字列を生成
-    image_path = os.path.join('static', f'graph_{random_string}.png')  # staticフォルダに保存
+    # ランダムな文字列を生成してグラフを保存する
+    random_string = uuid.uuid4().hex
+    image_path = os.path.join('static', f'graph_{random_string}.png')
     plt.savefig(image_path)
     plt.close()
     return image_path

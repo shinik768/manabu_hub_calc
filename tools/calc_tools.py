@@ -6,11 +6,12 @@ class TimeoutException(Exception):
     pass
 
 def clean_expression(expression):
-    # アルファベット、数字、特定の記号を許容
+    # 許可された文字だけを残す
     cleaned_expression = re.sub(r'[^a-zA-Z0-9=()!$+*-/*^]', '', expression)
     return cleaned_expression
 
 def change_I_and_i(expression):
+    # 'i' と 'I' を入れ替え
     expression = str(expression).replace('i', '<')
     expression = str(expression).replace('I', '>')
     expression = str(expression).replace('<', 'I')
@@ -18,61 +19,63 @@ def change_I_and_i(expression):
     return expression
 
 def add_spaces(expression):
+    # 演算子の前にスペースを追加
     expression = re.sub(r'(?<=[^\s\+\-])(?=[\+\-])', ' ', expression)
     return expression
 
 def add_multiplication_sign(expression):
-    expression = re.sub(r'(?<=[\d])(?=[a-zA-Z])', '*', expression)  # 数字と変数の間
-    expression = re.sub(r'(?<=[a-zA-Z])(?=[a-zA-Z])', '*', expression)  # 変数と変数の間
-    expression = re.sub(r'(?<=[)])(?=[a-zA-Z])', '*', expression)  # 括弧と変数の間
-    expression = re.sub(r'(?<=[\d])(?=[(])', '*', expression)  # 数字と括弧の間
-    expression = re.sub(r'(?<=[a-zA-Z])(?=[(])', '*', expression)  # 変数と括弧の間
-    expression = re.sub(r'(?<=[)])(?=[(])', '*', expression)  # 括弧と括弧の間
+    # 乗算演算子を追加
+    expression = re.sub(r'(?<=[\d])(?=[a-zA-Z])', '*', expression)
+    expression = re.sub(r'(?<=[a-zA-Z])(?=[a-zA-Z])', '*', expression)
+    expression = re.sub(r'(?<=[)])(?=[a-zA-Z])', '*', expression)
+    expression = re.sub(r'(?<=[\d])(?=[(])', '*', expression)
+    expression = re.sub(r'(?<=[a-zA-Z])(?=[(])', '*', expression)
+    expression = re.sub(r'(?<=[)])(?=[(])', '*', expression)
     return expression
 
 def add_exponentiation_sign(expression):
-    expression = str(expression).replace('^', '**') # ^を**に変換
-    expression = re.sub(r'(?<=[a-zA-Z])(?=\d)', '**', expression)  # 文字と数字の間
-    expression = re.sub(r'(?<=[)])(?=\d)', '**', expression)  # 括弧と数字の間
+    # 指数演算子を追加
+    expression = str(expression).replace('^', '**')
+    expression = re.sub(r'(?<=[a-zA-Z])(?=\d)', '**', expression)
+    expression = re.sub(r'(?<=[)])(?=\d)', '**', expression)
     return expression
 
 def sort_expression(expression):
-    # 式中に含まれる変数を取得
+    # 変数を取得してソート
     variables = sorted(expression.free_symbols, key=lambda var: str(var))
     
-    # 式が変数を含まない場合、そのまま返す
     if not variables:
         return expression
 
     terms = expression.as_ordered_terms()
     
     def get_sort_key(term):
-        # 変数がある場合のみ多項式を作成
+        # ソート用のキーを取得
         if term.free_symbols:
             return (sp.Poly(term, *variables).total_degree(), term.as_coefficients_dict().keys())
         else:
-            return (0, term.as_coefficients_dict().keys())  # 定数項の場合
+            return (0, term.as_coefficients_dict().keys())
 
-    # キーに基づいて項をソート
     sorted_terms = sorted(terms, key=get_sort_key)
-    
-    # ソートされた項を加算して新しい式を作成
     sorted_expr = sp.Add(*sorted_terms)
     return sorted_expr
 
 def format_expression(expression):
-    expanded_expr = sp.expand(sp.sympify(expression))  # 展開
-    simplified_expr = sp.simplify(expanded_expr)  # 簡略化
+    # 式を展開し簡略化
+    expanded_expr = sp.expand(sp.sympify(expression))
+    simplified_expr = sp.simplify(expanded_expr)
     sorted_expr = sort_expression(simplified_expr)
     formatted_expr = str(sorted_expr).replace('**', '^').replace('*', '')
     return formatted_expr
 
 def format_equation(left_expr, right_expr):
-    left_minus_right_expr = sp.simplify(left_expr - right_expr)  # 左辺と右辺の差を簡略化
+    # 左辺と右辺の差を簡略化してフォーマット
+    left_minus_right_expr = sp.simplify(left_expr - right_expr)
     formatted_expr = format_expression(left_minus_right_expr)
     return f"{formatted_expr} = 0"
 
 def clean_and_prepare_expression(expression):
+    # 式をクリーニングして準備
     expression = clean_expression(expression)
     expression = add_spaces(expression)
     expression = change_I_and_i(expression)
@@ -81,6 +84,7 @@ def clean_and_prepare_expression(expression):
     return expression
 
 def get_variable_range(parts):
+    # 変数の範囲を取得
     var1_min, var1_max = -5, 5
     if len(parts) == 3:
         try:
@@ -90,6 +94,7 @@ def get_variable_range(parts):
     return var1_min, var1_max
 
 def solve_equation_in_threads(eq, variables):
+    # スレッドを使用して方程式を解く
     results = []
     threads = [threading.Thread(target=solve_equation, args=(eq, var, results)) for var in variables]
     
@@ -105,6 +110,7 @@ def solve_equation_in_threads(eq, variables):
     return results
 
 def format_solutions(variables, results):
+    # 解をフォーマット
     sorted_results = [
         f"{var} = {results[variables.index(var)]}" if not isinstance(results[variables.index(var)], list) 
         else "\n".join(f"{var} = {sol}" for sol in results[variables.index(var)])
@@ -113,6 +119,7 @@ def format_solutions(variables, results):
     return str("\n".join(sorted_results) or "解なし").replace('**', '^').replace('*', '')
 
 def solve_equation(eq, var, results):
+    # 方程式を解いて結果を格納
     try:
         solution = sp.solve(eq, var)
         results.append(solution)

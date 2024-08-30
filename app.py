@@ -26,6 +26,7 @@ from linebot.v3.webhooks import (
 
 app = Flask(__name__)
 
+# LINE API用の設定を取得
 configuration = Configuration(access_token=os.environ.get('LINE_CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.environ.get('LINE_CHANNEL_SECRET'))
 
@@ -36,6 +37,7 @@ def callback():
     app.logger.info("Request body: " + body)
 
     try:
+        # リクエストをハンドラで処理
         handler.handle(body, signature)
     except InvalidSignatureError:
         app.logger.info("Invalid signature. Please check your channel access token/channel secret.")
@@ -44,7 +46,7 @@ def callback():
     return 'OK'
 
 def delete_image_after_delay(image_path, delay=300):  # デフォルトは300秒（5分間）
-    time.sleep(delay)
+    time.sleep(delay)  # 指定された時間待機
     if os.path.exists(image_path):
         os.remove(image_path)
         print(f"画像ファイルが削除されました: {image_path}")
@@ -53,7 +55,7 @@ def delete_image_after_delay(image_path, delay=300):  # デフォルトは300秒
 def handle_message(event):
     user_message = event.message.text
     try:
-        response = simplify_or_solve(user_message)
+        response = simplify_or_solve(user_message)  # ユーザーからのメッセージを処理
         if isinstance(response, tuple) and len(response) == 2:
             result_str, image_path = response
             image_url = f"https://manabu-hub-calc.onrender.com/static/{os.path.basename(image_path)}"
@@ -100,5 +102,5 @@ def handle_message(event):
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT"))
-    app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get("PORT"))  # ポート番号を環境変数から取得
+    app.run(host='0.0.0.0', port=port)  # Flaskアプリを起動

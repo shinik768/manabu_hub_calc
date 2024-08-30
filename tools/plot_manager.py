@@ -13,18 +13,18 @@ import sympy as sp
 import numpy as np
 
 def plot_graph(left_expr, right_expr, var1, var2, x_min=-5, x_max=5):
-    # 先に計算
+    # 左辺と右辺の式を簡略化
     left_expr, right_expr = simplify_expressions(left_expr, right_expr)
     print(left_expr)
     print(right_expr)
 
-    # 変数の範囲を設定
-    x_vals = np.linspace(x_min, x_max, 50)  # val1 (x) の範囲を50個の値に分割
+    # xの範囲を設定
+    x_vals = np.linspace(x_min, x_max, 50)
 
-    # val1 に対する val2 の値を計算
+    # yの値を計算
     y_vals = compute_y_values(left_expr, right_expr, var1, x_vals, var2)
 
-    # 解が存在しない場合のエラーハンドリング
+    # 解が存在しない場合の処理
     if not y_vals:
         return f"{x_min}<={var1}<={x_max}の範囲内ではグラフを描画できません。"
 
@@ -33,7 +33,7 @@ def plot_graph(left_expr, right_expr, var1, var2, x_min=-5, x_max=5):
 
     print(f"最小値: {y_min}, 最大値: {y_max}")
 
-    # グラフを描画するための範囲を設定
+    # メッシュグリッドを作成
     X, Y = create_meshgrid(x_min, x_max, y_min, y_max)
 
     # 左辺と右辺の差を計算
