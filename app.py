@@ -171,7 +171,7 @@ def simplify_or_solve(expression):
         return "数式を正しく入力してください！"
 
 
-def delete_image_after_delay(image_path, delay=86400):  # デフォルトは86400秒（24時間）
+def delete_image_after_delay(image_path, delay=300):  # デフォルトは300秒（5分間）
     time.sleep(delay)
     if os.path.exists(image_path):
         os.remove(image_path)
