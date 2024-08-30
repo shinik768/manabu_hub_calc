@@ -65,8 +65,8 @@ def plot_graph(left_expr, right_expr, var1, var2, x_min=-5, x_max=5):
     plt.figure(figsize=(8, 6))  # 4:3のアスペクト比で図を作成
     plt.contour(X, Y, Z, levels=[0], colors='blue')  # 等高線を描画
     plt.title(graph_title)
-    plt.xlabel(var1)
-    plt.ylabel(var2)
+    plt.xlabel(change_I_and_i(var1))
+    plt.ylabel(change_I_and_i(var2))
     plt.grid()
     plt.axhline(0, color='black', linewidth=0.5, ls='--')
     plt.axvline(0, color='black', linewidth=0.5, ls='--')
