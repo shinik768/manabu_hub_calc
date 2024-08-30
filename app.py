@@ -45,6 +45,18 @@ def callback():
 
     return 'OK'
 
+def clean_expression(expression):
+    # アルファベット、数字、特定の記号を許容
+    cleaned_expression = re.sub(r'[^a-zA-Z0-9=()!$+*-/*^]', '', expression)
+    return cleaned_expression
+
+def change_I_and_i(expression):
+    expression = str(expression).replace('i', '<')
+    expression = str(expression).replace('I', '>')
+    expression = str(expression).replace('<', 'I')
+    expression = str(expression).replace('>', 'i')
+    return expression
+
 def add_spaces(expression):
     expression = re.sub(r'(?<=[^\s\+\-])(?=[\+\-])', ' ', expression)
     return expression
@@ -100,19 +112,67 @@ def format_equation(left_expr, right_expr):
     formatted_expr = format_expression(left_minus_right_expr)
     return f"{formatted_expr} = 0"
 
-def plot_graph(left_expr, right_expr, var1, var2):
-    # 変数の範囲を設定
-    x_vals = np.linspace(-10, 10, 400)  # xの範囲
-    y_vals = np.linspace(-10, 10, 400)  # yの範囲
-    X, Y = np.meshgrid(x_vals, y_vals)
 
+class TimeoutException(Exception):
+    pass
+
+def solve_equation(eq, var, result_container):
+    result_container.append(sp.solve(eq, var))
+
+def plot_graph(left_expr, right_expr, var1, var2, x_min=-5, x_max=5):
+    # 先に計算
+    left_expr = sp.simplify(left_expr)
+    right_expr = sp.simplify(right_expr)
+    print(left_expr)
+    print(right_expr)
+
+    # 変数の範囲を設定
+    x_vals = np.linspace(x_min, x_max, 50)  # val1 (x) の範囲を50個の値に分割
+
+    # 端に余分を持たせる割合を設定
+    margin_rate = 0.08
+    
+    # val1 に対する val2 の値を計算
+    y_vals = []
+    
+    for x in x_vals:
+        y_vals_at_x = sp.solve(left_expr.subs(var1, x) - right_expr, var2)
+        # 実数の解を数値に変換しリストに追加
+        y_vals.extend([float(sol.evalf()) for sol in y_vals_at_x if sol.is_real])
+    
+    # 解が存在しない場合のエラーハンドリング
+    if not y_vals:
+        return f"{x_min}<={var1}<={x_max}の範囲内ではグラフを描画できません。"
+
+    # y_vals の最小値と最大値を取得
+    y_min = min(y_vals)
+    y_max = max(y_vals)
+
+    # 5%の余裕を追加
+    y_margin = margin_rate * (y_max - y_min)
+    y_min -= y_margin
+    y_max += y_margin
+
+    x_margin = margin_rate * (x_max - x_min)
+    x_min -= x_margin
+    x_max += x_margin
+
+    print(f"最小値: {y_min}, 最大値: {y_max}")
+    
     # タイトルを指定
     graph_title = format_equation(left_expr, right_expr)
+    graph_title = change_I_and_i(graph_title)
+
+    # グラフを描画するための範囲を設定
+    x_vals_for_plot = np.linspace(x_min, x_max, 400)
+    y_vals_for_plot = np.linspace(y_min, y_max, 400)
+    X, Y = np.meshgrid(x_vals_for_plot, y_vals_for_plot)
 
     # 左辺と右辺の差を計算
-    Z = sp.lambdify((var1, var2), left_expr - right_expr, 'numpy')(X, Y)  # Z = 0 になる部分を計算
+    Z = sp.lambdify((var1, var2), left_expr - right_expr, 'numpy')(X, Y)
 
-    plt.figure(figsize=(8, 6))
+    # グラフの設定と描画
+    plt.figure(figsize=(8, 6))  # 4:3のアスペクト比で図を作成
     plt.contour(X, Y, Z, levels=[0], colors='blue')  # 等高線を描画
     plt.title(graph_title)
     plt.xlabel(var1)
@@ -120,6 +180,8 @@ def plot_graph(left_expr, right_expr, var1, var2):
     plt.grid()
     plt.axhline(0, color='black', linewidth=0.5, ls='--')
     plt.axvline(0, color='black', linewidth=0.5, ls='--')
+    plt.xlim([x_min, x_max])  # val1 (x) の範囲
+    plt.ylim([y_min, y_max])  # val2 (y) の範囲を調整
 
     # ランダムな文字列を生成して画像を保存
     random_string = uuid.uuid4().hex  # ランダムな文字列を生成
@@ -137,7 +199,27 @@ def plot_graph(left_expr, right_expr, var1, var2):
 
 def simplify_or_solve(expression):
     try:
+        # カンマで区切って部分を取得
+        expression = clean_expression(expression)
+        parts = [part.strip() for part in expression.split(',')]
+        expression = parts[0]
+
+        # グラフ表示用のxの最小値、最大値をあらかじめ指定
+        var1_min = -5
+        var1_max = 5
+
+        if (len(parts) == 3):
+            try:
+                num1 = float(parts[1])
+                num2 = float(parts[2])
+                var1_min = min(num1, num2)
+                var1_max = max(num1, num2)
+            except Exception as e:
+                print(e)
+                pass
+
         expression = add_spaces(expression)
+        expression = change_I_and_i(expression)
         expression = add_multiplication_sign(expression)
         expression = add_exponentiation_sign(expression)
 
@@ -151,28 +233,54 @@ def simplify_or_solve(expression):
             # 変数の取得
             variables = list(left_expr.free_symbols.union(right_expr.free_symbols))
             eq = sp.Eq(left_expr - right_expr, 0)
+
             try:
-                solutions = {var: sp.solve(eq, var) for var in variables}
+                # 結果を格納するためのリスト
+                results = []
+                threads = []
+
+                # 変数ごとにスレッドを作成
+                for var in variables:
+                    thread = threading.Thread(target=solve_equation, args=(eq, var, results))
+                    threads.append(thread)
+                    thread.start()
+
+                # スレッドの完了を待つ
+                for thread in threads:
+                    thread.join(timeout=10)  # 10秒待機
+                    if thread.is_alive():  # スレッドがまだ動いている場合
+                        print("解を求めるのに時間がかかりすぎました。")
+                        raise TimeoutException("解を求めるのに時間がかかりすぎました。")
+
                 # 解の表示形式を調整
                 result = ""
-                for var, sols in sorted(solutions.items(), key=lambda x: str(x[0])):
+                for var, sols in zip(variables, results):
                     if isinstance(sols, list):
                         for sol in sols:
                             result += f"{var} = {sol}\n"
                     else:
                         result += f"{var} = {sols}\n"
-                
-                result_str = result.strip() if result else "解なし" # 解がない場合の処理
+
+                result_str = result.strip() if result else "解なし"  # 解がない場合の処理
                 result_str = str(result_str).replace('**', '^').replace('*', '')  # 形式を整形
-                if len (variables) != 2:
-                    return result_str
-                else:
-                    var1, var2 = sorted(variables, key=lambda v: str(v))  # アルファベット順でソート
-                    image_path = plot_graph(left_expr, right_expr, str(var1), str(var2))  # グラフを描画
-                    return result_str, image_path  # 画像パスを返す
+                result_str = change_I_and_i(result_str)
+
+            except TimeoutException as e:
+                print("解を求めるのに時間がかかりすぎました。")
+                result_str = "解を求めるのに時間がかかりすぎました。"
             except Exception as e:
                 print(f"エラー: {e}")
-                return "解を求める際にエラーが発生しました。"
+                result_str = "解を求める際にエラーが発生しました。"
+            print(len(variables))
+            if len (variables) != 2:
+                    return result_str
+            else:
+                var1, var2 = sorted(variables, key=lambda v: str(v))  # アルファベット順でソート
+                image_path = plot_graph(left_expr, right_expr, str(var1), str(var2), x_min=var1_min, x_max=var1_max)  # グラフを描画
+                if image_path == f"{var1_min}<={var1}<={var1_max}の範囲内ではグラフを描画できません。":
+                    return result_str + "\n" + image_path
+                else:
+                    return result_str, image_path
 
         elif equal_sign_count > 1:
             return "方程式には等号 (=) をちょうど1個含めてください！"
@@ -180,7 +288,9 @@ def simplify_or_solve(expression):
             expanded_expr = sp.expand(sp.sympify(expression))  # 展開
             simplified_expr = sp.simplify(expanded_expr)  # 簡略化
             simplified_expr_str = str(simplified_expr).replace('**', '^').replace('*', '')  # 形式を整形
-            return f"{simplified_expr_str}"
+            result_str = change_I_and_i(simplified_expr_str)
+
+            return f"{result_str}"
 
     except (sp.SympifyError, TypeError) as e:
         print(f"SymPy error: {e}")
