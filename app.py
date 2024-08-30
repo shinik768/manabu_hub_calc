@@ -136,28 +136,27 @@ def simplify_or_solve(expression):
             eq = sp.Eq(left_expr - right_expr, 0)
             try:
                 solutions = {var: sp.solve(eq, var) for var in variables}
+                # 解の表示形式を調整
+                result = ""
+                for var, sols in sorted(solutions.items(), key=lambda x: str(x[0])):
+                    if isinstance(sols, list):
+                        for sol in sols:
+                            sol = sort_expression(sol)
+                            result += f"{var} = {sol}\n"
+                    else:
+                        result += f"{var} = {sols}\n"
+                
+                result_str = result.strip() if result else "解なし" # 解がない場合の処理
+                result_str = str(result_str).replace('**', '^').replace('*', '')  # 形式を整形
+                if len (variables) != 2:
+                    return result_str
+                else:
+                    var1, var2 = sorted(variables, key=lambda v: str(v))  # アルファベット順でソート
+                    image_path = plot_graph(left_expr, right_expr, str(var1), str(var2))  # グラフを描画
+                    return result_str, image_path  # 画像パスを返す
             except Exception as e:
                 print(f"エラー: {e}")
                 return "解を求める際にエラーが発生しました。"
-
-            # 解の表示形式を調整
-            result = ""
-            for var, sols in sorted(solutions.items(), key=lambda x: str(x[0])):
-                if isinstance(sols, list):
-                    for sol in sols:
-                        sol = sort_expression(sol)
-                        result += f"{var} = {sol}\n"
-                else:
-                    result += f"{var} = {sols}\n"
-            
-            result_str = result.strip() if result else "解なし" # 解がない場合の処理
-            result_str = str(result_str).replace('**', '^').replace('*', '')  # 形式を整形
-            if len (variables) != 2:
-                return result_str
-            else:
-                var1, var2 = sorted(variables, key=lambda v: str(v))  # アルファベット順でソート
-                image_path = plot_graph(left_expr, right_expr, str(var1), str(var2))  # グラフを描画
-                return result_str, image_path  # 画像パスを返す
 
         elif equal_sign_count > 1:
             return "方程式には等号 (=) をちょうど1個含めてください！"
@@ -186,7 +185,7 @@ def handle_message(event):
         if isinstance(response, tuple) and len(response) == 2:
             result_str, image_path = response
             image_path = response  # 画像パスを保存
-            image_url = f"https://manabu-hub-ai.onrender.com/static/{os.path.basename(image_path)}"  # RenderのURLを指定
+            image_url = f"https://manabu-hub-calc.onrender.com/static/{os.path.basename(image_path)}"  # RenderのURLを指定
             
             line_bot_api = MessagingApi(ApiClient(configuration))
             line_bot_api.reply_message_with_http_info(
@@ -212,7 +211,7 @@ def handle_message(event):
             )
     except Exception as e:
         print(f"Error: {e}")
-        response = "現在、システムが混み合っているため、しばらくお待ちください。"
+        response = "申し訳ございません。エラーが発生したようです。もう一度試しても正常に作動しなければ、お手数お掛けしますがまなぶHUBの公式LINEまでご連絡ください。"
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
             line_bot_api.reply_message_with_http_info(
