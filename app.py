@@ -4,7 +4,7 @@ import time
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-import uuid  # 追加
+import uuid
 import threading
 from flask import Flask, request, abort
 from linebot.v3 import (
@@ -200,9 +200,7 @@ def handle_message(event):
         response = simplify_or_solve(user_message)
         if isinstance(response, tuple) and len(response) == 2:
             result_str, image_path = response
-            image_path = response  # 画像パスを保存
-            image_url = f"https://manabu-hub-calc.onrender.com/static/{os.path.basename(image_path)}"  # RenderのURLを指定
-            
+            image_url = f"https://manabu-hub-calc.onrender.com/static/{os.path.basename(image_path)}"  # RenderのURLを指定          
             line_bot_api = MessagingApi(ApiClient(configuration))
             line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
