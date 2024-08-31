@@ -12,6 +12,7 @@ def clean_expression(expression):
 
 def change_some_alphabets(expression):
     # ユニコードの非表示文字を使って 'i' と 'I' を入れ替え
+    print(expression)
     placeholder = '\u2063'
     expression = str(expression).replace('i', placeholder)
     expression = expression.replace('I', 'i')
@@ -25,6 +26,7 @@ def change_some_alphabets(expression):
     expression = str(expression).replace('S_var', placeholder)
     expression = expression.replace('S', 'S_var')
     expression = expression.replace(placeholder, 'S')
+    print(expression)
     return expression
 
 def add_spaces(expression):

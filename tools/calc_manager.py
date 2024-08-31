@@ -34,9 +34,9 @@ def simplify_or_solve(expression):
                     var1, var2 = sorted(variables, key=str)
                     image_path = plot_graph(left_expr, right_expr, str(var1), str(var2), x_min=var1_min, x_max=var1_max)
                     if image_path != f"{var1_min}<={var1}<={var1_max}の範囲内ではグラフを描画できません。":
-                        return result_str, image_path
+                        return change_some_alphabets(result_str), image_path
                     else:
-                        return result_str + "\n" + image_path
+                        return change_some_alphabets(result_str) + "\n" + image_path
 
                 return change_some_alphabets(result_str)  # 変数が2つでない場合、解を返す
             
