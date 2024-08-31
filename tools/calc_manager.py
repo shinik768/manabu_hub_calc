@@ -38,7 +38,7 @@ def simplify_or_solve(expression):
                     else:
                         return result_str + "\n" + image_path
 
-                return result_str  # 変数が1つの場合、解を返す
+                return change_I_and_i(result_str)  # 変数が2つでない場合、解を返す
             
             except TimeoutException:
                 return "解を求めるのに時間がかかりすぎました。"  # タイムアウト時のメッセージ
@@ -54,5 +54,6 @@ def simplify_or_solve(expression):
         return change_I_and_i(str(simplified_expr).replace('**', '^').replace('*', ''))
 
     except (sp.SympifyError, TypeError) as e:
+        print (expression)
         print(f"SymPy error: {e}")
         return "数式を正しく入力してください！"  # 入力エラー時のメッセージ

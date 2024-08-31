@@ -117,7 +117,7 @@ def format_solutions(variables, results):
         for var in sorted(variables, key=str)
     ]
     result_str =  str("\n".join(sorted_results) or "解なし").replace('**', '^').replace('*', '')
-    return change_I_and_i(result_str)
+    return result_str
 
 def solve_equation(eq, var, results):
     # 方程式を解いて結果を格納
