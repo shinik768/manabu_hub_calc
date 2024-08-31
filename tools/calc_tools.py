@@ -10,12 +10,21 @@ def clean_expression(expression):
     cleaned_expression = re.sub(r'[^a-zA-Z0-9=()!$+*-/*^]', '', expression)
     return cleaned_expression
 
-def change_I_and_i(expression):
+def change_some_alphabets(expression):
     # ユニコードの非表示文字を使って 'i' と 'I' を入れ替え
     placeholder = '\u2063'
     expression = str(expression).replace('i', placeholder)
     expression = expression.replace('I', 'i')
     expression = expression.replace(placeholder, 'I')
+    expression = str(expression).replace('E_var', placeholder)
+    expression = expression.replace('E', 'E_var')
+    expression = expression.replace(placeholder, 'E')
+    expression = str(expression).replace('Q_var', placeholder)
+    expression = expression.replace('Q', 'Q_var')
+    expression = expression.replace(placeholder, 'Q')
+    expression = str(expression).replace('S_var', placeholder)
+    expression = expression.replace('S', 'S_var')
+    expression = expression.replace(placeholder, 'S')
     return expression
 
 def add_spaces(expression):
@@ -78,9 +87,9 @@ def clean_and_prepare_expression(expression):
     # 式をクリーニングして準備
     expression = clean_expression(expression)
     expression = add_spaces(expression)
-    expression = change_I_and_i(expression)
     expression = add_multiplication_sign(expression)
     expression = add_exponentiation_sign(expression)
+    expression = change_some_alphabets(expression)
     return expression
 
 def get_variable_range(parts):

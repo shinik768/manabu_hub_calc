@@ -1,4 +1,4 @@
-from tools.calc_tools import change_I_and_i
+from tools.calc_tools import change_some_alphabets
 
 import os
 import sympy as sp
@@ -44,9 +44,9 @@ def plot_contour(X, Y, Z, graph_title, var1, var2, x_min, x_max, y_min, y_max):
     # 等高線グラフを描画する
     plt.figure(figsize=(8, 6))
     plt.contour(X, Y, Z, levels=[0], colors='blue')
-    plt.title(change_I_and_i(graph_title))
-    plt.xlabel(change_I_and_i(var1))
-    plt.ylabel(change_I_and_i(var2))
+    plt.title(change_some_alphabets(graph_title))
+    plt.xlabel(change_some_alphabets(var1))
+    plt.ylabel(change_some_alphabets(var2))
     plt.grid()
     plt.axhline(0, color='black', linewidth=0.5, ls='--')
     plt.axvline(0, color='black', linewidth=0.5, ls='--')

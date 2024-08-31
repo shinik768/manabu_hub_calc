@@ -1,6 +1,6 @@
 from tools.calc_tools import (
     TimeoutException,
-    change_I_and_i,
+    change_some_alphabets,
     clean_and_prepare_expression,
     get_variable_range,
     solve_equation_in_threads,
@@ -38,7 +38,7 @@ def simplify_or_solve(expression):
                     else:
                         return result_str + "\n" + image_path
 
-                return change_I_and_i(result_str)  # 変数が2つでない場合、解を返す
+                return change_some_alphabets(result_str)  # 変数が2つでない場合、解を返す
             
             except TimeoutException:
                 return "解を求めるのに時間がかかりすぎました。"  # タイムアウト時のメッセージ
@@ -51,7 +51,7 @@ def simplify_or_solve(expression):
         
         # 方程式でない場合、式を簡略化して返す
         simplified_expr = sp.simplify(sp.expand(sp.sympify(expression)))
-        return change_I_and_i(str(simplified_expr).replace('**', '^').replace('*', ''))
+        return change_some_alphabets(str(simplified_expr).replace('**', '^').replace('*', ''))
 
     except (sp.SympifyError, TypeError) as e:
         print (expression)
