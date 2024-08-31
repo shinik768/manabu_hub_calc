@@ -44,7 +44,7 @@ def plot_contour(X, Y, Z, graph_title, var1, var2, x_min, x_max, y_min, y_max):
     # 等高線グラフを描画する
     plt.figure(figsize=(8, 6))
     plt.contour(X, Y, Z, levels=[0], colors='blue')
-    plt.title(graph_title)
+    plt.title(change_I_and_i(graph_title))
     plt.xlabel(change_I_and_i(var1))
     plt.ylabel(change_I_and_i(var2))
     plt.grid()

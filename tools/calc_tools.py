@@ -11,11 +11,11 @@ def clean_expression(expression):
     return cleaned_expression
 
 def change_I_and_i(expression):
-    # 'i' と 'I' を入れ替え
-    expression = str(expression).replace('i', '<')
-    expression = str(expression).replace('I', '>')
-    expression = str(expression).replace('<', 'I')
-    expression = str(expression).replace('>', 'i')
+    # ユニコードの非表示文字を使って 'i' と 'I' を入れ替え
+    placeholder = '\u2063'
+    expression = str(expression).replace('i', placeholder)
+    expression = expression.replace('I', 'i')
+    expression = expression.replace(placeholder, 'I')
     return expression
 
 def add_spaces(expression):
@@ -116,7 +116,8 @@ def format_solutions(variables, results):
         else "\n".join(f"{var} = {sol}" for sol in results[variables.index(var)])
         for var in sorted(variables, key=str)
     ]
-    return str("\n".join(sorted_results) or "解なし").replace('**', '^').replace('*', '')
+    result_str =  str("\n".join(sorted_results) or "解なし").replace('**', '^').replace('*', '')
+    return change_I_and_i(result_str)
 
 def solve_equation(eq, var, results):
     # 方程式を解いて結果を格納
