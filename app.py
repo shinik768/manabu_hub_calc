@@ -57,47 +57,48 @@ def delete_image_after_delay(image_path, delay=300):  # デフォルトは300秒
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     user_message = event.message.text
-    try:
-        response = simplify_or_solve(user_message)  # ユーザーからのメッセージを処理
-        if isinstance(response, tuple) and len(response) == 2:
-            result_str, image_path = response
-            image_url = f"https://manabu-hub-calc.onrender.com/static/{os.path.basename(image_path)}"
-            
-            # LINE APIクライアントの作成
-            line_bot_api = MessagingApi(ApiClient(configuration))
-            print(results_str[1:100])
+    #try:
+    response = simplify_or_solve(user_message)  # ユーザーからのメッセージを処理
+    if isinstance(response, tuple) and len(response) == 2:
+        result_str, image_path = response
+        image_url = f"https://manabu-hub-calc.onrender.com/static/{os.path.basename(image_path)}"
+        
+        # LINE APIクライアントの作成
+        line_bot_api = MessagingApi(ApiClient(configuration))
+        print(results_str[1:100])
 
-            results_str = split_message(result_str, max_length=5000)
-            messages = [ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
-            for result_str in results_str:
-                messages.append(TextMessage(text=result_str))
-            
-            # 画像メッセージとテキストメッセージを同時に送信
+        results_str = split_message(result_str, max_length=5000)
+        messages = [ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
+        for result_str in results_str:
+            messages.append(TextMessage(text=result_str))
+        
+        # 画像メッセージとテキストメッセージを同時に送信
+        line_bot_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                message = messages
+                #messages=[
+                #    ImageMessage(original_content_url=image_url, preview_image_url=image_url),
+                #    TextMessage(text=result_str)
+                #]
+            )
+        )
+        print("画像とテキストを同時に送信:", image_path)
+
+        # 画像送信後に別スレッドで削除処理を開始
+        threading.Thread(target=delete_image_after_delay, args=(image_path,)).start()
+    else:
+        result_str = response
+        # ここで解のテキストを送信
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
             line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
-                    message = messages
-                    #messages=[
-                    #    ImageMessage(original_content_url=image_url, preview_image_url=image_url),
-                    #    TextMessage(text=result_str)
-                    #]
+                    messages=[TextMessage(text=result_str)]
                 )
             )
-            print("画像とテキストを同時に送信:", image_path)
-
-            # 画像送信後に別スレッドで削除処理を開始
-            threading.Thread(target=delete_image_after_delay, args=(image_path,)).start()
-        else:
-            result_str = response
-            # ここで解のテキストを送信
-            with ApiClient(configuration) as api_client:
-                line_bot_api = MessagingApi(api_client)
-                line_bot_api.reply_message_with_http_info(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[TextMessage(text=result_str)]
-                    )
-                )
+    """
     except Exception as e:
         print(f"Error: {e}")
         response = "申し訳ございません。エラーが発生したようです。もう一度試しても正常に作動しなければ、お手数お掛けしますがまなぶHUBの公式LINEまでご連絡ください。"
@@ -109,6 +110,7 @@ def handle_message(event):
                     messages=[TextMessage(text=response)]
                 )
             )
+    """
 
 
 if __name__ == "__main__":
