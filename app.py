@@ -65,10 +65,8 @@ def handle_message(event):
         
         # LINE APIクライアントの作成
         line_bot_api = MessagingApi(ApiClient(configuration))
-        print(str(result_str[1:100]))
 
         results_str = split_message(result_str, max_length=5000)
-        print(len(results_str))
         messages = [ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
         for result_str in results_str:
             messages.append(TextMessage(text=result_str))
@@ -77,12 +75,11 @@ def handle_message(event):
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                #message = messages
                 messages=[
-                    ImageMessage(original_content_url=image_url, preview_image_url=image_url),
-                    #TextMessage(text=result_str)
-                    TextMessage(text=results_str[0])
-                ]
+                    ImageMessage(original_content_url=image_url, preview_image_url=image_url)
+                ].extend(
+                    [TextMessage(text=result_str) for result_str in results_str]
+                )
             )
         )
         print("画像とテキストを同時に送信:", image_path)
