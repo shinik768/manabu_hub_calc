@@ -30,7 +30,7 @@ def zenkaku_to_hankaku(text):
 
 def clean_expression(expression):
     # 許可された文字だけを残す
-    cleaned_expression = re.sub(r'[^a-zA-Z0-9=().×÷!+\-*/^%]', '', expression)
+    cleaned_expression = re.sub(r'[^a-zA-Z0-9=().,×÷!+\-*/^%]', '', expression)
     return cleaned_expression
 
 def change_some_alphabets(expression):
