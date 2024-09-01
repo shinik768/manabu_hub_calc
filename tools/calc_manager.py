@@ -32,8 +32,11 @@ def simplify_or_solve(expression):
                 # 方程式を変数ごとに解く（スレッドを使用）
                 results, is_terminated = solve_equation_in_threads(eq, variables)
                 result_str = format_solutions(variables, results)
-                if is_terminated:
-                    result_str = f"{result_str}\n時間がかかりすぎるため、一部または全部の解を求められませんでした。"
+                if is_terminated or result_str[0] == '\n' or '\n\n' in result_str:
+                    if result_str[0] == '\n':
+                        result_str = result_str[1:]
+                    result_str.replace('\n\n', '\n')
+                    result_str = f"{result_str}\n解が存在しないか、計算に時間がかかりすぎるため、一部または全部の解を求められませんでした。申し訳ございません。"
 
                 if len(variables) == 2:  # 変数が2つの場合、グラフを描画
                     var1, var2 = sorted(variables, key=str)
