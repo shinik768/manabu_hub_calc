@@ -55,5 +55,6 @@ Name                     Version   License
  truststore               0.8.0     MIT License                                                                     
  urllib3                  2.2.2     MIT License                                                                     
  zstandard                0.22.0    BSD License                                                             
-
-Copyright © 2001-2023 Python Software Foundation. All rights reserved.        
+ 
+Copyright © 2001-2023 Python Software Foundation. All rights reserved.   
+Copyright © Render 2024
