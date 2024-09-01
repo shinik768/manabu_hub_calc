@@ -15,7 +15,7 @@ def zenkaku_to_hankaku(text):
     zenkaku_alphabets = "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ" + "ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ"
     hankaku_alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz"
     
-    # 全角記号と対応する半角記号を定義
+    # 全角記号と対応する半角記号を定義（面倒なので中括弧、大括弧もここで置き換える）
     zenkaku_symbols = "＝（）．×÷！＋－ー−＊／＾％{}[]"
     hankaku_symbols = "=().×÷!+---*/^%()()"
     
