@@ -72,9 +72,9 @@ def handle_message(event):
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
                     messages=[
-                        ImageMessage(original_content_url=image_url, preview_image_url=image_url)
-                    ] + [
                         TextMessage(text=result_str) for result_str in results_str
+                    ] + [
+                        ImageMessage(original_content_url=image_url, preview_image_url=image_url)
                     ]
                 )
             )
