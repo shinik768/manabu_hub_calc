@@ -7,6 +7,26 @@ import time
 class TimeoutException(Exception):
     pass
 
+def zenkaku_to_hankaku(text):
+    # 全角数字とアルファベットを対応する半角文字に変換する
+    zenkaku_numbers = "０１２３４５６７８９"
+    hankaku_numbers = "0123456789"
+    
+    zenkaku_alphabets = "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ" + "ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ"
+    hankaku_alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz"
+    
+    # 全角記号と対応する半角記号を定義
+    zenkaku_symbols = "＝（）．×÷！＋－＊／＾％"
+    hankaku_symbols = "=().×÷!+-*/^%"
+    
+    # 変換テーブルを作成
+    translation_table = str.maketrans(
+        zenkaku_numbers + zenkaku_alphabets + zenkaku_symbols,
+        hankaku_numbers + hankaku_alphabets + hankaku_symbols
+    )
+    
+    return text.translate(translation_table)
+
 def clean_expression(expression):
     # 許可された文字だけを残す
     cleaned_expression = re.sub(r'[^a-zA-Z0-9=().×÷!+\-*/^%]', '', expression)
@@ -92,6 +112,7 @@ def format_equation(left_expr, right_expr):
 
 def clean_and_prepare_expression(expression):
     # 式をクリーニングして準備
+    expression = zenkaku_to_hankaku(expression)
     expression = clean_expression(expression)
     expression = change_some_operators(expression)
     expression = add_spaces(expression)
