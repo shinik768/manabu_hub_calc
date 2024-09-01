@@ -97,7 +97,7 @@ def adjust_ranges_based_on_y(x_vals, y_min, y_max, margin_rate=0.08):
     except:
         x_center = 0
 
-    x_width = 4/3*y_width/2
+    x_width = 4/3*y_width
     x_min = x_center - x_width*(1/2 + margin_rate)
     x_max = x_center + x_width*(1/2 + margin_rate)
 
