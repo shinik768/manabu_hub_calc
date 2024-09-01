@@ -81,7 +81,7 @@ def handle_message(event):
                 messages=[
                     ImageMessage(original_content_url=image_url, preview_image_url=image_url),
                     #TextMessage(text=result_str)
-                    TextMessage(text="申し訳ございません。ただいまメンテナンス中のため計算結果や解を送信できません。")
+                    TextMessage(text=results_str[0])
                 ]
             )
         )
