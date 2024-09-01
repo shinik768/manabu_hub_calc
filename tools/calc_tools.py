@@ -9,7 +9,7 @@ class TimeoutException(Exception):
 
 def clean_expression(expression):
     # 許可された文字だけを残す
-    cleaned_expression = re.sub(r'[^a-zA-Z0-9=().!+*-/*^]', '', expression)
+    cleaned_expression = re.sub(r'[^a-zA-Z0-9=().×÷!+\-*/^%]', '', expression)
     return cleaned_expression
 
 def change_some_alphabets(expression):
@@ -27,6 +27,11 @@ def change_some_alphabets(expression):
     expression = str(expression).replace('S_var', placeholder)
     expression = expression.replace('S', 'S_var')
     expression = expression.replace(placeholder, 'S')
+    return expression
+
+def change_some_operators(expression):
+    expression = str(expression.replace('×', '*'))
+    expression = str(expression.replace('÷', '/'))
     return expression
 
 def add_spaces(expression):
@@ -88,6 +93,7 @@ def format_equation(left_expr, right_expr):
 def clean_and_prepare_expression(expression):
     # 式をクリーニングして準備
     expression = clean_expression(expression)
+    expression = change_some_operators(expression)
     expression = add_spaces(expression)
     expression = add_multiplication_sign(expression)
     expression = add_exponentiation_sign(expression)
