@@ -5,6 +5,10 @@ import sympy as sp
 import numpy as np
 import matplotlib.pyplot as plt
 import uuid
+import sys
+
+# 許可される桁数を増やす
+sys.set_int_max_str_digits(10000)
 
 def simplify_expressions(left_expr, right_expr):
     # 左辺と右辺の式を簡略化して返す

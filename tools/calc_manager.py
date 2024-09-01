@@ -1,5 +1,4 @@
 from tools.calc_tools import (
-    TimeoutException,
     change_some_alphabets,
     clean_and_prepare_expression,
     get_variable_range,

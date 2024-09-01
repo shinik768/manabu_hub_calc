@@ -3,9 +3,10 @@ from tools.powerful_thread import powerful_thread
 import sympy as sp
 import re
 import time
+import sys
 
-class TimeoutException(Exception):
-    pass
+# 許可される桁数を増やす
+sys.set_int_max_str_digits(10000)
 
 def zenkaku_to_hankaku(text):
     # 全角数字とアルファベットを対応する半角文字に変換する

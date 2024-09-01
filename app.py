@@ -30,6 +30,9 @@ app = Flask(__name__)
 configuration = Configuration(access_token=os.environ.get('LINE_CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.environ.get('LINE_CHANNEL_SECRET'))
 
+def split_message(text, max_length=5000):
+    return [text[i:i + max_length] for i in range(0, len(text), max_length)]
+
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -62,15 +65,20 @@ def handle_message(event):
             
             # LINE APIクライアントの作成
             line_bot_api = MessagingApi(ApiClient(configuration))
+
+            results_str = split_message(result_str, max_length=5000)
+            messages = [ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
+            messages.extend([TextMessage(results_str) for results_str in results_str])
             
             # 画像メッセージとテキストメッセージを同時に送信
             line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
-                    messages=[
-                        ImageMessage(original_content_url=image_url, preview_image_url=image_url),
-                        TextMessage(text=result_str)
-                    ]
+                    message = messages
+                    #messages=[
+                    #    ImageMessage(original_content_url=image_url, preview_image_url=image_url),
+                    #    TextMessage(text=result_str)
+                    #]
                 )
             )
             print("画像とテキストを同時に送信:", image_path)
