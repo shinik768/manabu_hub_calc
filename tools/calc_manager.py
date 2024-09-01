@@ -11,6 +11,8 @@ from tools.plot_manager import plot_graph
 import sympy as sp
 
 def simplify_or_solve(expression):
+    if "起きて" in expression:
+        return "すみません！今起きました！"
     try:
         # 式を前処理して、不要な文字やスペースを調整
         expression = clean_and_prepare_expression(expression)
