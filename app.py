@@ -65,9 +65,10 @@ def handle_message(event):
         
         # LINE APIクライアントの作成
         line_bot_api = MessagingApi(ApiClient(configuration))
-        print(results_str[1:100])
+        print(str(result_str[1:100]))
 
         results_str = split_message(result_str, max_length=5000)
+        print(len(results_str))
         messages = [ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
         for result_str in results_str:
             messages.append(TextMessage(text=result_str))
@@ -75,12 +76,13 @@ def handle_message(event):
         # 画像メッセージとテキストメッセージを同時に送信
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(
-                reply_token=event.reply_token,
-                message = messages
-                #messages=[
-                #    ImageMessage(original_content_url=image_url, preview_image_url=image_url),
-                #    TextMessage(text=result_str)
-                #]
+                #reply_token=event.reply_token,
+                #message = messages
+                messages=[
+                    ImageMessage(original_content_url=image_url, preview_image_url=image_url),
+                    #TextMessage(text=result_str)
+                    TextMessage(text="申し訳ございません。ただいまメンテナンス中のため計算結果や解を送信できません。")
+                ]
             )
         )
         print("画像とテキストを同時に送信:", image_path)
