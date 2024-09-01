@@ -76,7 +76,7 @@ def handle_message(event):
         # 画像メッセージとテキストメッセージを同時に送信
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(
-                #reply_token=event.reply_token,
+                reply_token=event.reply_token,
                 #message = messages
                 messages=[
                     ImageMessage(original_content_url=image_url, preview_image_url=image_url),
