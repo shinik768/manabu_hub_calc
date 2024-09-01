@@ -12,5 +12,5 @@ ENV/
 *.cfg
 *.config
 
-trial.py
+trial*
 graph_*.png

@@ -1,18 +1,19 @@
-import threading
+from tools.powerful_thread import powerful_thread
+
 import sympy as sp
 import re
+import time
 
 class TimeoutException(Exception):
     pass
 
 def clean_expression(expression):
     # 許可された文字だけを残す
-    cleaned_expression = re.sub(r'[^a-zA-Z0-9=()!$+*-/*^]', '', expression)
+    cleaned_expression = re.sub(r'[^a-zA-Z0-9=().!+*-/*^]', '', expression)
     return cleaned_expression
 
 def change_some_alphabets(expression):
     # ユニコードの非表示文字を使って 'i' と 'I' を入れ替え
-    print(expression)
     placeholder = '\u2063'
     expression = str(expression).replace('i', placeholder)
     expression = expression.replace('I', 'i')
@@ -26,7 +27,6 @@ def change_some_alphabets(expression):
     expression = str(expression).replace('S_var', placeholder)
     expression = expression.replace('S', 'S_var')
     expression = expression.replace(placeholder, 'S')
-    print(expression)
     return expression
 
 def add_spaces(expression):
@@ -96,35 +96,57 @@ def clean_and_prepare_expression(expression):
 
 def get_variable_range(parts):
     # 変数の範囲を取得
-    var1_min, var1_max = -5, 5
-    if len(parts) == 3:
+    var1_min, var1_max = -5,5
+    var2_min, var2_max = -5,5
+    var1_range_is_undecided = True
+    var2_range_is_undecided = True
+    if len(parts) >= 3:
         try:
-            var1_min, var1_max = sorted(float(num) for num in parts[1:3])
-        except ValueError as e:
-            print(e)
-    return var1_min, var1_max
+            var1_min, var1_max = sorted(float(num) for num in parts[1:3] if all(parts[1:3]))
+            var1_range_is_undecided = False
+        except ValueError:
+            pass
+    if len(parts) >= 5:
+        try:
+            var2_min, var2_max = sorted(float(num) for num in parts[3:5] if all(parts[3:5]))
+            var2_range_is_undecided = False
+        except ValueError:
+            pass
+    return var1_min, var1_max, var2_min, var2_max, var1_range_is_undecided, var2_range_is_undecided
 
 def solve_equation_in_threads(eq, variables):
     # スレッドを使用して方程式を解く
-    results = []
-    threads = [threading.Thread(target=solve_equation, args=(eq, var, results)) for var in variables]
+    results = {}
+    threads = [powerful_thread(target=solve_equation, args=(eq, var, results)) for var in variables]
+    is_terminated = False
     
     for thread in threads:
         thread.start()
     
     for thread in threads:
-        thread.join(timeout=10)
+        # スレッドが10秒以内に終了するか確認
+        start_time = time.time()
         if thread.is_alive():
-            print("解を求めるのに時間がかかりすぎました。")
-            raise TimeoutException("解を求めるのに時間がかかりすぎました。")
+            elapsed_time = time.time() - start_time
+            if elapsed_time > 10:
+                is_terminated = True
+                print("Time limit exceeded, terminating the thread.")
+                thread.raise_exception()
+                break
+            time.sleep(0.1)  # 100msのスリープでCPU使用率を抑える
     
-    return results
+    # 全てのスレッドが終了するのを待機
+    for thread in threads:
+        thread.join()
+    
+    results = {key: results[key] for key in sorted(results)}
+    return results, is_terminated
 
 def format_solutions(variables, results):
     # 解をフォーマット
     sorted_results = [
-        f"{var} = {results[variables.index(var)]}" if not isinstance(results[variables.index(var)], list) 
-        else "\n".join(f"{var} = {sol}" for sol in results[variables.index(var)])
+        f"{var} = {results[str(var)]}" if not isinstance(results[str(var)], list) 
+        else "\n".join(f"{var} = {sol}" for sol in results[str(var)])
         for var in sorted(variables, key=str)
     ]
     result_str =  str("\n".join(sorted_results) or "解なし").replace('**', '^').replace('*', '')
@@ -134,7 +156,7 @@ def solve_equation(eq, var, results):
     # 方程式を解いて結果を格納
     try:
         solution = sp.solve(eq, var)
-        results.append(solution)
+        results[str(var)] = solution
     except Exception as e:
         print(f"解を求める際にエラーが発生しました: {e}")
-        results.append("解なし")
+        results[str(var)] = "解なし"
