@@ -68,7 +68,7 @@ def handle_message(event):
 
             results_str = split_message(result_str, max_length=5000)
             messages = [ImageMessage(original_content_url=image_url, preview_image_url=image_url)]
-            messages.extend([TextMessage(results_str) for results_str in results_str])
+            messages.extend([TextMessage(text=result_str) for result_str in results_str])
             
             # 画像メッセージとテキストメッセージを同時に送信
             line_bot_api.reply_message_with_http_info(
