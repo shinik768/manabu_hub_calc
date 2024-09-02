@@ -56,3 +56,6 @@ def main():
     # スレッドの終了を待機
     x.join()
     print("Main function completed.")
+
+if __name__ == '__main__':
+    main() 
