@@ -56,7 +56,7 @@ def simplify_or_solve(expression):
             
             except Exception as e:
                 print(f"エラー: {e}")
-                return "解を求める際にエラーが発生しました。"  # 予期しないエラーのハンドリング
+                return "解を求める際にエラーが発生しました。申し訳ございません。"  # 予期しないエラーのハンドリング
 
         if equal_sign_count > 1:  # 等号が2つ以上ある場合
             return "方程式には等号 (=) をちょうど1個含めてください！"

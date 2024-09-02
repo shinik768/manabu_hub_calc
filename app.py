@@ -59,6 +59,7 @@ def handle_message(event):
     user_message = event.message.text
     try:
         response = simplify_or_solve(user_message)  # ユーザーからのメッセージを処理
+        # 結果がテキスト、画像の両方であれば、両方とも出力
         if isinstance(response, tuple) and len(response) == 2:
             result_str, image_path = response
             image_url = f"https://manabu-hub-calc.onrender.com/static/{os.path.basename(image_path)}"
@@ -82,6 +83,7 @@ def handle_message(event):
 
             # 画像送信後に別スレッドで削除処理を開始
             threading.Thread(target=delete_image_after_delay, args=(image_path,)).start()
+        # 結果がテキストだけであればテキストのみを出力
         else:
             result_str = response
             results_str = split_message(result_str, max_length=5000)
@@ -98,7 +100,7 @@ def handle_message(event):
                 )
     except Exception as e:
         print(f"Error: {e}")
-        response = "申し訳ございません。エラーが発生したようです。もう一度試しても正常に作動しなければ、お手数お掛けしますがまなぶHUBの公式LINEまでご連絡ください。"
+        response = "申し訳ございません。エラーが発生したようです。もう一度試しても正常に動作しなければ、お手数お掛けしますがまなぶHUBの公式LINEまでご連絡ください。"
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
             line_bot_api.reply_message_with_http_info(
