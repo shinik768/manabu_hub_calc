@@ -48,13 +48,11 @@ def change_some_alphabets(expression):
     expression = str(expression).replace('S_var', placeholder)
     expression = expression.replace('S', 'S_var')
     expression = expression.replace(placeholder, 'S')
-    expression = expression.replace('PIecewIse', 'Piecewise')
-    expression = expression.replace('E_varq', 'Eq')
     return expression
 
 def change_some_operators(expression):
-    expression = str(expression.replace('×', '*'))
-    expression = str(expression.replace('÷', '/'))
+    expression = str(expression).replace('×', '*')
+    expression = str(expression).replace('÷', '/')
     return expression
 
 def add_spaces(expression):
@@ -77,6 +75,13 @@ def add_exponentiation_sign(expression):
     expression = str(expression).replace('^', '**')
     expression = re.sub(r'(?<=[a-zA-Z])(?=\d)', '**', expression)
     expression = re.sub(r'(?<=[)])(?=\d)', '**', expression)
+    return expression
+
+def convert_some_keywords(expression):
+    expression = str(expression).replace('PIecewIse', 'Piecewise')
+    expression = str(expression).replace('E_varq', 'Eq')
+    expression = str(expression).replace('nan', '不定')
+    expression = str(expression).replace('zoo', '不能')
     return expression
 
 def sort_expression(expression):

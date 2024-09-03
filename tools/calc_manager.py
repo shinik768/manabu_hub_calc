@@ -1,6 +1,7 @@
 from tools.calc_tools import (
     change_some_alphabets,
     clean_and_prepare_expression,
+    convert_some_keywords,
     get_variable_range,
     solve_equation_in_threads,
     format_solutions,
@@ -40,6 +41,10 @@ def simplify_or_solve(expression):
                     solution_str.replace('\n\n', '\n')
                     solution_str = f"{solution_str}\n解が存在しないか、計算に時間がかかりすぎるため、一部または全部の解を求められませんでした。申し訳ございません。"
 
+                solution_str = change_some_alphabets(solution_str)
+                solution_str = convert_some_keywords(solution_str)
+                solutions_str = solution_str.replace('**', '^').replace('*', '')
+
                 if len(variables) == 2:  # 変数が2つの場合、グラフを描画
                     var1, var2 = sorted(variables, key=str)
                     intercept_str, image_path = plot_graph(
@@ -49,8 +54,9 @@ def simplify_or_solve(expression):
                         y_range_is_undecided=var2_range_is_undecided
                     )
 
-                    intercepts_str = change_some_alphabets(intercept_str).replace('**', '^').replace('*', '')
-                    solutions_str = change_some_alphabets(solution_str)
+                    intercept_str = change_some_alphabets(intercept_str)
+                    intercept_str = convert_some_keywords(intercept_str)
+                    intercepts_str = intercept_str.replace('**', '^').replace('*', '')
 
                     results_str = split_result(solutions_str) + split_result(intercepts_str)
                     
@@ -59,7 +65,6 @@ def simplify_or_solve(expression):
                     else:
                         return results_str + [image_path]
                 else:
-                    solutions_str = change_some_alphabets(solution_str)
                     results_str = split_result(solutions_str)
                     return results_str  # 変数が2つでない場合、解を返す
             
@@ -72,7 +77,9 @@ def simplify_or_solve(expression):
         
         # 方程式でない場合、式を簡略化して返す
         simplified_expr = sp.simplify(sp.expand(sp.sympify(expression)))
-        result_str =  change_some_alphabets(str(simplified_expr)).replace('**', '^').replace('*', '')
+        result_str = change_some_alphabets(str(simplified_expr))
+        result_str = convert_some_keywords(result_str)
+        result_str =  result_str.replace('**', '^').replace('*', '')
         results_str = split_result(result_str)
         return results_str
 
