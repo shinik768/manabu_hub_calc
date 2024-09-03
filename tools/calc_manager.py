@@ -49,7 +49,7 @@ def simplify_or_solve(expression):
                         y_range_is_undecided=var2_range_is_undecided
                     )
 
-                    intercepts_str = change_some_alphabets(intercept_str)
+                    intercepts_str = change_some_alphabets(intercept_str).replace('**', '^').replace('*', '')
                     solutions_str = change_some_alphabets(solution_str)
 
                     results_str = split_result(solutions_str) + split_result(intercepts_str)
@@ -72,7 +72,7 @@ def simplify_or_solve(expression):
         
         # 方程式でない場合、式を簡略化して返す
         simplified_expr = sp.simplify(sp.expand(sp.sympify(expression)))
-        result_str =  change_some_alphabets(str(simplified_expr).replace('**', '^').replace('*', ''))
+        result_str =  change_some_alphabets(str(simplified_expr)).replace('**', '^').replace('*', '')
         results_str = split_result(result_str)
         return results_str
 
