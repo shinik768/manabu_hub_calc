@@ -58,8 +58,10 @@ def simplify_or_solve(expression):
                         return results_str, image_path
                     else:
                         return results_str + [image_path]
-                
-                return change_some_alphabets(solution_str)  # 変数が2つでない場合、解を返す
+                else:
+                    solutions_str = change_some_alphabets(solution_str)
+                    results_str = split_result(solutions_str)
+                    return results_str  # 変数が2つでない場合、解を返す
             
             except Exception as e:
                 print(f"エラー: {e}")
