@@ -48,6 +48,8 @@ def change_some_alphabets(expression):
     expression = str(expression).replace('S_var', placeholder)
     expression = expression.replace('S', 'S_var')
     expression = expression.replace(placeholder, 'S')
+    expression = expression.replace('PIecewIse', 'Piecewise')
+    expression = expression.replace('E_varq', 'Eq')
     return expression
 
 def change_some_operators(expression):
