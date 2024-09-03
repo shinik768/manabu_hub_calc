@@ -156,10 +156,8 @@ def compute_intercepts(left_expr, right_expr, x, y):
     equation = sp.Eq(left_expr, right_expr)
 
     # x切片を求める (y = 0 の場合)
-    x_intercepts = sp.solve(equation.subs(y, 0), x)
-    # y切片を求める (x = 0 の場合)
-    y_intercepts = sp.solve(equation.subs(x, 0), y)
-
+    x_intercepts = []
+    y_intercepts = []
     # スレッドを作成
     thread_x = powerful_thread(
         target=solve_equation_for_x_when_y_equal_0,
