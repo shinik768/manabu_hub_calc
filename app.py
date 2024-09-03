@@ -105,7 +105,6 @@ def handle_message(event):
                 )
             )
 
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT"))  # ポート番号を環境変数から取得
     app.run(host='0.0.0.0', port=port)  # Flaskアプリを起動
