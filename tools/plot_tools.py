@@ -160,6 +160,50 @@ def compute_intercepts(left_expr, right_expr, x, y):
     # y切片を求める (x = 0 の場合)
     y_intercepts = sp.solve(equation.subs(x, 0), y)
 
+    # スレッドを作成
+    thread_x = powerful_thread(
+        target=solve_equation_for_x_when_y_equal_0,
+        args=(equation, x, y, x_intercepts)
+    )
+    thread_y = powerful_thread(
+        target=solve_equation_for_y_when_x_equal_0,
+        args=(equation, x, y, y_intercepts)
+    )
+
+    # スレッドxを開始
+    thread_x.start()
+    
+        # スレッドxが10秒以内に終了するか確認
+    start_time = time.time()
+    while thread_x.is_alive():
+        elapsed_time = time.time() - start_time
+        if elapsed_time > 10:
+            x_intercepts.append("申し訳ございません。切片を求めるのに時間がかかるため、一部または全部の切片を求めることができませんでした")
+            print("Time limit exceeded, terminating the thread.")
+            thread_x.raise_exception()
+            break
+        time.sleep(0.1)  # 100msのスリープでCPU使用率を抑える
+
+    # スレッドyの終了を待つ
+    thread_x.join()
+
+    # スレッドyを開始
+    thread_y.start()
+    
+        # スレッドyが10秒以内に終了するか確認
+    start_time = time.time()
+    while thread_y.is_alive():
+        elapsed_time = time.time() - start_time
+        if elapsed_time > 10:
+            print("Time limit exceeded, terminating the thread.")
+            y_intercepts.append("申し訳ございません。切片を求めるのに時間がかかるため、一部または全部の切片を求めることができませんでした")
+            thread_y.raise_exception()
+            break
+        time.sleep(0.1)  # 100msのスリープでCPU使用率を抑える
+
+    # スレッドyの終了を待つ
+    thread_y.join()
+
     # 実数の切片のみをフィルタリング
     x_real_intercepts = [sol for sol in x_intercepts if sol.evalf().is_real]
     y_real_intercepts = [sol for sol in y_intercepts if sol.evalf().is_real]
@@ -239,3 +283,9 @@ def save_plot_image():
     plt.savefig(image_path)
     plt.close()
     return image_path
+
+def solve_equation_for_x_when_y_equal_0(equation, x, y, x_intercepts):
+    x_intercepts.extend(sp.solve(equation.subs(y, 0), x))
+
+def solve_equation_for_y_when_x_equal_0(equation, x, y, y_intercepts):
+    y_intercepts.extend(sp.solve(equation.subs(x, 0), y))
