@@ -144,8 +144,8 @@ def get_variable_range(parts):
 
 def solve_equation_in_threads(eq, variables):
     # スレッドを使用して方程式を解く
-    results = {}
-    threads = [powerful_thread(target=solve_equation, args=(eq, var, results)) for var in variables]
+    solutions = {}
+    threads = [powerful_thread(target=solve_equation, args=(eq, var, solutions)) for var in variables]
     is_terminated = False
     
     for thread in threads:
@@ -167,24 +167,28 @@ def solve_equation_in_threads(eq, variables):
     for thread in threads:
         thread.join()
     
-    results = {key: results[key] for key in sorted(results)}
-    return results, is_terminated
+    solutions = {key: solutions[key] for key in sorted(solutions)}
+    return solutions, is_terminated
 
-def format_solutions(variables, results):
+def format_solutions(variables, solutions):
     # 解をフォーマット
-    sorted_results = [
-        f"{var} = {results[str(var)]}" if not isinstance(results[str(var)], list) 
-        else "\n".join(f"{var} = {sol}" for sol in results[str(var)])
+    sorted_solutions = [(f'{var}の解\n' +
+        (f"{var} = {solutions[str(var)]}" if not isinstance(solutions[str(var)], list)
+        else "\n".join(f"{var} = {sol}" for sol in solutions[str(var)])))
+        if solutions[str(var)] else f"{var}の解\n解が存在しないか、計算に時間がかかりすぎるため、解を求められませんでした。"
         for var in sorted(variables, key=str)
     ]
-    result_str =  str("\n".join(sorted_results) or "解なし").replace('**', '^').replace('*', '')
-    return result_str
+    solution_str =  str("\n".join(sorted_solutions) or "解なし").replace('**', '^').replace('*', '')
+    return solution_str
 
-def solve_equation(eq, var, results):
+def solve_equation(eq, var, solutions):
     # 方程式を解いて結果を格納
     try:
         solution = sp.solve(eq, var)
-        results[str(var)] = solution
+        solutions[str(var)] = solution
     except Exception as e:
         print(f"解を求める際にエラーが発生しました: {e}")
-        results[str(var)] = "解なし"
+        solutions[str(var)] = "解なし"
+
+def split_result(text, max_length=5000):
+    return [text[i:i + max_length] for i in range(0, len(text), max_length)]

@@ -45,13 +45,13 @@ def designate_x_range_automatically(left_expr, right_expr, x, y):
     x_max = substantial_value
     return x_min, x_max
 
-def designate_y_range_based_on_x(x, y, results, x_min, x_max, x_range_is_undecided):
+def designate_y_range_based_on_x(x, y, solutions, x_min, x_max, x_range_is_undecided):
     # xの範囲を設定
     x_vals = np.linspace(x_min, x_max, 50)
     y_vals = []
 
     # スレッドを作成
-    thread = powerful_thread(target=compute_y_values, args=(results, x, x_vals, y, y_vals))
+    thread = powerful_thread(target=compute_y_values, args=(solutions, x, x_vals, y, y_vals))
 
     # スレッドを開始
     thread.start()
@@ -73,13 +73,13 @@ def designate_y_range_based_on_x(x, y, results, x_min, x_max, x_range_is_undecid
 
     return x_min, x_max, y_min, y_max
 
-def designate_x_range_based_on_y(x, y, results, y_min, y_max):
+def designate_x_range_based_on_y(x, y, solutions, y_min, y_max):
     # xの範囲を設定
     y_vals = np.linspace(y_min, y_max, 50)
     x_vals = []
 
     # スレッドを作成
-    thread = powerful_thread(target=compute_x_values, args=(results, x, x_vals, y, y_vals))
+    thread = powerful_thread(target=compute_x_values, args=(solutions, x, x_vals, y, y_vals))
 
     # スレッドを開始
     thread.start()
@@ -101,17 +101,17 @@ def designate_x_range_based_on_y(x, y, results, y_min, y_max):
 
     return x_min, x_max, y_min, y_max
 
-def compute_x_values(results, x, x_vals, y, y_vals):
+def compute_x_values(solutions, x, x_vals, y, y_vals):
     # 変数をSymPyのシンボルとして定義
     x = sp.symbols(x)
     y = sp.symbols(y)
     
     # 指定された変数に対応する解を取得
-    results_for_x = results[str(x)]
+    solutions_for_x = solutions[str(x)]
 
     sols = []
-    for result in results_for_x:
-        eq = sp.Eq(x, result)
+    for solution in solutions_for_x:
+        eq = sp.Eq(x, solution)
         sol_list = sp.solve(eq, x)
         sols.extend(sol_list)
 
@@ -124,17 +124,17 @@ def compute_x_values(results, x, x_vals, y, y_vals):
                 # 実数値の場合、x_valsに追加
                 x_vals.append(real_value)
 
-def compute_y_values(results, x, x_vals, y, y_vals):
+def compute_y_values(solutions, x, x_vals, y, y_vals):
     # 変数をSymPyのシンボルとして定義
     x = sp.symbols(x)
     y = sp.symbols(y)
     
     # 指定された変数に対応する解を取得
-    results_for_var2 = results[str(y)]
+    solutions_for_y = solutions[str(y)]
 
     sols = []
-    for result in results_for_var2:
-        eq = sp.Eq(y, result)
+    for solution in solutions_for_y:
+        eq = sp.Eq(y, solution)
         sol_list = sp.solve(eq, y)
         sols.extend(sol_list)
 
@@ -146,6 +146,29 @@ def compute_y_values(results, x, x_vals, y, y_vals):
             if real_value.is_real:
                 # 実数値の場合、y_valsに追加
                 y_vals.append(real_value)
+
+def compute_intercepts(left_expr, right_expr, x, y):
+    # 変数をSymPyのシンボルとして定義
+    x = sp.symbols(x)
+    y = sp.symbols(y)
+    
+    # 方程式の定義 (例: 3x^2 + 2y^2 - 6 = 0)
+    equation = sp.Eq(left_expr, right_expr)
+
+    # x切片を求める (y = 0 の場合)
+    x_intercepts = sp.solve(equation.subs(y, 0), x)
+    # y切片を求める (x = 0 の場合)
+    y_intercepts = sp.solve(equation.subs(x, 0), y)
+
+    # 実数の切片のみをフィルタリング
+    x_real_intercepts = [sol for sol in x_intercepts if sol.evalf().is_real]
+    y_real_intercepts = [sol for sol in y_intercepts if sol.evalf().is_real]
+
+    # 出力を生成
+    x_intercepts_str = ('x = ' + ', '.join(map(str, x_real_intercepts))) if x_real_intercepts else 'なし'
+    y_intercepts_str = ('y = ' + ', '.join(map(str, y_real_intercepts))) if y_real_intercepts else 'なし'
+    
+    return f"x切片\n{x_intercepts_str}\ny切片\n{y_intercepts_str}"
 
 def adjust_xy_ranges_based_on_x(y_vals, x_min, x_max, x_range_is_undecided, margin_rate=0.08):
     if x_range_is_undecided:

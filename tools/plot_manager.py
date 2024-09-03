@@ -1,14 +1,13 @@
 from tools.calc_tools import format_equation
 from tools.plot_tools import (
     simplify_expressions,
-    adjust_xy_ranges_based_on_x,
-    adjust_xy_ranges_based_on_y,
-    create_meshgrid,
-    plot_contour,
-    save_plot_image,
     designate_x_range_automatically,
     designate_x_range_based_on_y,
     designate_y_range_based_on_x,
+    compute_intercepts,
+    create_meshgrid,
+    plot_contour,
+    save_plot_image,
 )
 
 import os
@@ -16,7 +15,7 @@ import sympy as sp
 import numpy as np
 
 def plot_graph(
-        left_expr, right_expr, results, x, y,
+        left_expr, right_expr, solutions, x, y,
         x_min, x_max, y_min, y_max,
         x_range_is_undecided, y_range_is_undecided
     ):
@@ -28,11 +27,13 @@ def plot_graph(
 
     if y_range_is_undecided:
         x_min, x_max, y_min, y_max = designate_y_range_based_on_x(
-            x, y, results, x_min, x_max, x_range_is_undecided)
+            x, y, solutions, x_min, x_max, x_range_is_undecided)
 
     elif x_range_is_undecided and not y_range_is_undecided:
         x_min, x_max, y_min, y_max = designate_x_range_based_on_y(
-            x, y, results, y_min, y_max)
+            x, y, solutions, y_min, y_max)
+        
+    intercept_str = compute_intercepts(left_expr, right_expr, x, y)
 
     # メッシュグリッドを作成
     X, Y = create_meshgrid(x_min, x_max, y_min, y_max)
@@ -55,4 +56,4 @@ def plot_graph(
     else:
         print("画像ファイルの保存に失敗しました。")
     
-    return image_path
+    return intercept_str, image_path

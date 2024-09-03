@@ -4,6 +4,7 @@ from tools.calc_tools import (
     get_variable_range,
     solve_equation_in_threads,
     format_solutions,
+    split_result,
 )
 from tools.plot_manager import plot_graph
 
@@ -31,28 +32,34 @@ def simplify_or_solve(expression):
 
             try:
                 # 方程式を変数ごとに解く（スレッドを使用）
-                results, is_terminated = solve_equation_in_threads(eq, variables)
-                result_str = format_solutions(variables, results)
-                if is_terminated or result_str[0] == '\n' or '\n\n' in result_str:
-                    if result_str[0] == '\n':
-                        result_str = result_str[1:]
-                    result_str.replace('\n\n', '\n')
-                    result_str = f"{result_str}\n解が存在しないか、計算に時間がかかりすぎるため、一部または全部の解を求められませんでした。申し訳ございません。"
+                solutions, is_terminated = solve_equation_in_threads(eq, variables)
+                solution_str = format_solutions(variables, solutions)
+                if is_terminated or solution_str[0] == '\n' or '\n\n' in solution_str:
+                    if solution_str[0] == '\n':
+                        solution_str = solution_str[1:]
+                    solution_str.replace('\n\n', '\n')
+                    solution_str = f"{solution_str}\n解が存在しないか、計算に時間がかかりすぎるため、一部または全部の解を求められませんでした。申し訳ございません。"
 
                 if len(variables) == 2:  # 変数が2つの場合、グラフを描画
                     var1, var2 = sorted(variables, key=str)
-                    image_path = plot_graph(
-                        left_expr, right_expr, results, str(var1), str(var2),
+                    intercept_str, image_path = plot_graph(
+                        left_expr, right_expr, solutions, str(var1), str(var2),
                         x_min=var1_min, x_max=var1_max, y_min=var2_min, y_max=var2_max,
                         x_range_is_undecided=var1_range_is_undecided,
                         y_range_is_undecided=var2_range_is_undecided
                     )
+
+                    intercepts_str = change_some_alphabets(intercept_str)
+                    solutions_str = change_some_alphabets(solution_str)
+
+                    results_str = split_result(solutions_str) + split_result(intercepts_str)
+                    
                     if image_path.endswith('.png'):
-                        return change_some_alphabets(result_str), image_path
+                        return results_str, image_path
                     else:
-                        return change_some_alphabets(result_str) + "\n" + image_path
+                        return results_str + [image_path]
                 
-                return change_some_alphabets(result_str)  # 変数が2つでない場合、解を返す
+                return change_some_alphabets(solution_str)  # 変数が2つでない場合、解を返す
             
             except Exception as e:
                 print(f"エラー: {e}")

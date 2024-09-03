@@ -30,9 +30,6 @@ app = Flask(__name__)
 configuration = Configuration(access_token=os.environ.get('LINE_CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.environ.get('LINE_CHANNEL_SECRET'))
 
-def split_message(text, max_length=5000):
-    return [text[i:i + max_length] for i in range(0, len(text), max_length)]
-
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -61,12 +58,11 @@ def handle_message(event):
         response = simplify_or_solve(user_message)  # ユーザーからのメッセージを処理
         # 結果がテキスト、画像の両方であれば、両方とも出力
         if isinstance(response, tuple) and len(response) == 2:
-            result_str, image_path = response
+            results_str, image_path = response
             image_url = f"https://manabu-hub-calc.onrender.com/static/{os.path.basename(image_path)}"
             
             # LINE APIクライアントの作成
             line_bot_api = MessagingApi(ApiClient(configuration))
-            results_str = split_message(result_str, max_length=5000)
             
             # 画像メッセージとテキストメッセージを同時に送信
             line_bot_api.reply_message(
@@ -85,8 +81,7 @@ def handle_message(event):
             threading.Thread(target=delete_image_after_delay, args=(image_path,)).start()
         # 結果がテキストだけであればテキストのみを出力
         else:
-            result_str = response
-            results_str = split_message(result_str, max_length=5000)
+            results_str = response
             # ここで解のテキストを送信
             with ApiClient(configuration) as api_client:
                 line_bot_api = MessagingApi(api_client)
