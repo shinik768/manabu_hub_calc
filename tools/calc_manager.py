@@ -70,7 +70,9 @@ def simplify_or_solve(expression):
         
         # 方程式でない場合、式を簡略化して返す
         simplified_expr = sp.simplify(sp.expand(sp.sympify(expression)))
-        return change_some_alphabets(str(simplified_expr).replace('**', '^').replace('*', ''))
+        result_str =  change_some_alphabets(str(simplified_expr).replace('**', '^').replace('*', ''))
+        results_str = split_result(result_str)
+        return results_str
 
     except (sp.SympifyError, TypeError) as e:
         print (expression)
