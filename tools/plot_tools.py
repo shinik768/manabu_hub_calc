@@ -207,8 +207,8 @@ def compute_intercepts(left_expr, right_expr, x, y):
     y_real_intercepts = [sol for sol in y_intercepts if sol.evalf().is_real]
 
     # 出力を生成
-    x_intercepts_str = ('x = ' + ', '.join(map(str, x_real_intercepts))) if x_real_intercepts else 'なし'
-    y_intercepts_str = ('y = ' + ', '.join(map(str, y_real_intercepts))) if y_real_intercepts else 'なし'
+    x_intercepts_str = (f'{x} = ' + ', '.join(map(str, x_real_intercepts))) if x_real_intercepts else 'なし'
+    y_intercepts_str = (f'{y} = ' + ', '.join(map(str, y_real_intercepts))) if y_real_intercepts else 'なし'
     
     return f"x切片\n{x_intercepts_str}\ny切片\n{y_intercepts_str}"
 
