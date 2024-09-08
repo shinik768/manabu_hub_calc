@@ -210,7 +210,7 @@ def compute_intercepts(left_expr, right_expr, x, y):
     x_intercepts_str = (f'{x} = ' + ', '.join(map(str, x_real_intercepts))) if x_real_intercepts else 'なし'
     y_intercepts_str = (f'{y} = ' + ', '.join(map(str, y_real_intercepts))) if y_real_intercepts else 'なし'
     
-    return f"x切片\n{x_intercepts_str}\ny切片\n{y_intercepts_str}"
+    return f"{x}切片\n{x_intercepts_str}\n{y}切片\n{y_intercepts_str}"
 
 def adjust_xy_ranges_based_on_x(y_vals, x_min, x_max, x_range_is_undecided, margin_rate=0.08):
     if x_range_is_undecided:
