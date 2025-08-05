@@ -207,8 +207,8 @@ def compute_intercepts(left_expr, right_expr, x, y):
     y_real_intercepts = [sol for sol in y_intercepts if sol.evalf().is_real]
 
     # 出力を生成
-    x_intercepts_str = (f'{x} = ' + ', '.join(map(str, x_real_intercepts))) if x_real_intercepts else '切片は存在しないか、実数の範囲で表せません'
-    y_intercepts_str = (f'{y} = ' + ', '.join(map(str, y_real_intercepts))) if y_real_intercepts else '切片は存在しないか、実数の範囲で表せません'
+    x_intercepts_str = (f'{x} = ' + ', '.join(map(str, x_real_intercepts))) if x_real_intercepts else '存在しないか、実数の範囲で表せません'
+    y_intercepts_str = (f'{y} = ' + ', '.join(map(str, y_real_intercepts))) if y_real_intercepts else '存在しないか、実数の範囲で表せません'
     
     return f"{x}切片\n{x_intercepts_str}\n{y}切片\n{y_intercepts_str}"
 
