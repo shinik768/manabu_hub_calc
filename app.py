@@ -95,7 +95,7 @@ def handle_message(event):
                 )
     except Exception as e:
         print(f"Error: {e}")
-        response = "申し訳ございません。エラーが発生したようです。もう一度試しても正常に動作しなければ、お手数お掛けしますがまなぶHUBの公式LINEまでご連絡ください。"
+        response = "申し訳ございません。エラーにより、計算を実行できませんでした。\n\n計算可能な数式を送信したにも関わらずこのメッセージが表示される場合は、お手数お掛けしますがまなぶHUBのLINE公式アカウント（下記URL）までご連絡ください。\nhttps://lin.ee/Q6r5qbn"
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
             line_bot_api.reply_message_with_http_info(

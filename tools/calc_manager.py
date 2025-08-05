@@ -14,6 +14,13 @@ import sympy as sp
 def simplify_or_solve(expression):
     if "起きて" in expression:
         return "すみません！今起きました！"
+    
+    if ("バグ" in expression) or ("不具合" in expression):
+        return "ご迷惑おかけして申し訳ございません。よろしければ、不具合の内容をまなぶHUBのLINE公式アカウント（下記URL）までご連絡ください。\nhttps://lin.ee/Q6r5qbn"
+    
+    if ("ライセンス" in expression) or ("license" in expression):
+        return "私に関するライセンスや免責事項につきましては、下記URLのREADME.mdファイルをご確認いただけますと幸いです。\nhttps://github.com/shinik768/manabu_hub_calc_licenses"
+    
     try:
         # 式を前処理して、不要な文字やスペースを調整
         expression = clean_and_prepare_expression(expression)
