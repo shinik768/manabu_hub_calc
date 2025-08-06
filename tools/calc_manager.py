@@ -13,13 +13,19 @@ import sympy as sp
 
 def simplify_or_solve(expression):
     if "起きて" in expression:
-        return "すみません！今起きました！"
+        return ["すみません！今起きました！"]
     
-    if ("バグ" in expression) or ("不具合" in expression):
-        return "ご迷惑おかけして申し訳ございません。よろしければ、不具合の内容をまなぶHUBのLINE公式アカウント（下記URL）までご連絡ください。\nhttps://lin.ee/Q6r5qbn"
+    if ("バグ" in expression) or ("ばぐ" in expression) or ("不具合" in expression) or ("ふぐあい" in expression):
+        return ["ご迷惑おかけして申し訳ございません。よろしければ、不具合の内容をまなぶHUBのLINE公式アカウント（下記URL）までご連絡ください。\nhttps://lin.ee/Q6r5qbn"]
     
-    if ("ライセンス" in expression) or ("license" in expression):
-        return "私に関するライセンスや免責事項につきましては、下記URLのREADME.mdファイルをご確認いただけますと幸いです。\nhttps://github.com/shinik768/manabu_hub_calc_licenses"
+    if ("ライセンス" in expression) or ("らいせんす" in expression)or ("license" in expression):
+        return ["私に関するライセンスや免責事項につきましては、下記URLのREADME.mdファイルをご確認いただけますと幸いです。\nhttps://github.com/shinik768/manabu_hub_calc_licenses"]
+
+    if ("すご" in expression) or ("天才" in expression)or ("てんさい" in expression):
+        return ["ありがとうございます！"]
+
+    if ("ありが" in expression):
+        return ["どういたしまして！"]
     
     try:
         # 式を前処理して、不要な文字やスペースを調整
@@ -46,7 +52,7 @@ def simplify_or_solve(expression):
                     if solution_str[0] == '\n':
                         solution_str = solution_str[1:]
                     solution_str.replace('\n\n', '\n')
-                    solution_str = f"{solution_str}\n解が存在しないか、計算に時間がかかりすぎるため、一部または全部の解を求められませんでした。申し訳ございません。"
+                    solution_str = [f"{solution_str}\n解が存在しないか、計算に時間がかかりすぎるため、一部または全部の解を求められませんでした。申し訳ございません。"]
 
                 solution_str = change_some_alphabets(solution_str)
                 solution_str = convert_some_keywords(solution_str)
@@ -77,10 +83,10 @@ def simplify_or_solve(expression):
             
             except Exception as e:
                 print(f"エラー: {e}")
-                return "解を求める際にエラーが発生しました。申し訳ございません。"  # 予期しないエラーのハンドリング
+                return ["解を求める際にエラーが発生しました。申し訳ございません。"]  # 予期しないエラーのハンドリング
 
         if equal_sign_count > 1:  # 等号が2つ以上ある場合
-            return "方程式には等号 (=) をちょうど1個含めてください！"
+            return ["方程式には等号 (=) をちょうど1個含めてください！"]
         
         # 方程式でない場合、式を簡略化して返す
         simplified_expr = sp.simplify(sp.expand(sp.sympify(expression)))
@@ -93,4 +99,4 @@ def simplify_or_solve(expression):
     except (sp.SympifyError, TypeError) as e:
         print (expression)
         print(f"SymPy error: {e}")
-        return "数式を正しく入力してください！"  # 入力エラー時のメッセージ
+        return ["数式を正しく入力してください！"]  # 入力エラー時のメッセージ
