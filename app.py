@@ -3,6 +3,7 @@ from tools.calc_manager import simplify_or_solve
 import os
 import time
 import threading
+import gc
 
 from flask import Flask, request, abort
 from linebot.v3 import (
@@ -78,7 +79,7 @@ def handle_message(event):
             print("画像とテキストを同時に送信:", image_path)
 
             # 画像送信後に別スレッドで削除処理を開始
-            threading.Thread(target=delete_image_after_delay, args=(image_path,)).start()
+            threading.Thread(target=delete_image_after_delay, args=(image_path,10)).start()
         # 結果がテキストだけであればテキストのみを出力
         else:
             results_str = response
@@ -93,6 +94,9 @@ def handle_message(event):
                         ]
                     )
                 )
+        del response
+        gc.collect()
+
     except Exception as e:
         print(f"Error: {e}")
         response = "申し訳ございません。エラーにより、計算を実行できませんでした。\n\n正しい数式を送信したにも関わらずこのメッセージが表示される場合は、お手数お掛けしますがまなぶHUBのLINE公式アカウント（下記URL）までご連絡ください。\nhttps://lin.ee/Q6r5qbn"
