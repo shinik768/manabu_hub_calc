@@ -30,7 +30,7 @@ def zenkaku_to_hankaku(text):
 
 def clean_expression(expression):
     # 許可された文字だけを残す
-    cleaned_expression = re.sub(r'[^a-zA-Z0-9=().,×÷!+\-*/^%]', '', expression)
+    cleaned_expression = re.sub(r'[^a-zA-Z0-9=().,×÷!+\-*/^%√]', '', expression)
     return cleaned_expression
 
 def change_some_alphabets(expression):
@@ -48,6 +48,7 @@ def change_some_alphabets(expression):
     expression = str(expression).replace('S_var', placeholder)
     expression = expression.replace('S', 'S_var')
     expression = expression.replace(placeholder, 'S')
+    expression = str(expression).replace('√', 'sqrt')
     return expression
 
 def change_some_operators(expression):
@@ -62,9 +63,9 @@ def add_spaces(expression):
 
 def add_multiplication_sign(expression):
     # 乗算演算子を追加
-    expression = re.sub(r'(?<=[\d])(?=[a-zA-Z])', '*', expression)
-    expression = re.sub(r'(?<=[a-zA-Z])(?=[a-zA-Z])', '*', expression)
-    expression = re.sub(r'(?<=[)])(?=[a-zA-Z])', '*', expression)
+    expression = re.sub(r'(?<=[\d])(?=[a-zA-Z√])', '*', expression)
+    expression = re.sub(r'(?<=[a-zA-Z])(?=[a-zA-Z√])', '*', expression)
+    expression = re.sub(r'(?<=[)])(?=[a-zA-Z√])', '*', expression)
     expression = re.sub(r'(?<=[\d])(?=[(])', '*', expression)
     expression = re.sub(r'(?<=[a-zA-Z])(?=[(])', '*', expression)
     expression = re.sub(r'(?<=[)])(?=[(])', '*', expression)
@@ -108,7 +109,10 @@ def format_expression(expression):
     # 式を展開し簡略化
     expanded_expr = sp.expand(sp.sympify(expression))
     simplified_expr = sp.simplify(expanded_expr)
-    sorted_expr = sort_expression(simplified_expr)
+    try:
+        sorted_expr = sort_expression(simplified_expr)
+    except:
+        sorted_expr = simplified_expr
     formatted_expr = str(sorted_expr).replace('**', '^').replace('*', '')
     return formatted_expr
 

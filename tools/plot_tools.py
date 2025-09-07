@@ -25,7 +25,10 @@ def designate_x_range_automatically(left_expr, right_expr, x, y):
     coefficients_dict = simple_expr.as_coefficients_dict()
     coefficients = coefficients_dict.values()
     coefficients = [np.abs(coef) for coef in coefficients]
-    degree = sp.Poly(simple_expr).degree(x)
+    try:
+        degree = sp.Poly(simple_expr).degree(x)
+    except:
+        degree = 1
 
     # 最小の係数を取得
     min_coefficient = min(coefficients)
