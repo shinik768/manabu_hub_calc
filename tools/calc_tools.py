@@ -48,7 +48,9 @@ def change_some_alphabets(expression):
     expression = str(expression).replace('S_var', placeholder)
     expression = expression.replace('S', 'S_var')
     expression = expression.replace(placeholder, 'S')
-    expression = str(expression).replace('√', 'sqrt')
+    expression = str(expression).replace('sqrt', placeholder)
+    expression = expression.replace('√', 'sqrt')
+    expression = expression.replace(placeholder, '√')
     return expression
 
 def change_some_operators(expression):
